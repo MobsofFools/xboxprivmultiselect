@@ -1,6 +1,6 @@
 This is a POC
 ## Installing the repo on your local machine
-git clone git@github.com:MobsofFools/multiselect.git
+git clone git@github.com:MobsofFools/xboxprivmultiselect.git
 
 cd multiselect
 
