@@ -28,6 +28,7 @@
     <property name="iconColor" display-name-key="Icon Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue. default=white " of-type="SingleLine.Text" usage="input" required="false" />
     <property name="isModalSmall" display-name-key="isModalSmall" description-key="true or false only. default true. false for larger modal" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="isPortal" display-name-key="isPortal" description-key="true or false" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="crmURI" display-name-key="crmURI" description-key="url of CRM, used if on portal" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="enableNew" display-name-key="enableNew" description-key="true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
 
     

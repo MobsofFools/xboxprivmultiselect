@@ -22,7 +22,7 @@ import {
   getEntityInitialResults,
   getEntitySearchResults,
   maintainSelectedEntityData,
-  getSearchPage
+  getSearchPage,
 } from "../functions/apicalls";
 import NewEntry from "../NewEntry/NewEntry";
 
@@ -40,7 +40,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     setSelectionArray,
     selection,
     pageNumber,
-    setPageNumber
+    setPageNumber,
   } = props;
 
   //#region State
@@ -58,45 +58,42 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const selectedColumns = context?.parameters.selectedColumns.raw!;
   const selectedColumnsHeaders =
     context?.parameters.selectedColumnsHeaders.raw!;
-  const isModalSmall =
-    context?.parameters.isModalSmall.raw! || "true";
+  const isModalSmall = context?.parameters.isModalSmall.raw! || "true";
   const enableNew = context?.parameters.enableNew?.raw! || false;
   const classNames = mergeStyleSets({
     hideSquare: {
-      "span[role=checkbox]":{
-        border:"none !important"
-      }
-    }
-  })
-  const getSize = (small:string) => {
+      "span[role=checkbox]": {
+        border: "none !important",
+      },
+    },
+  });
+  const getSize = (small: string) => {
     const largeModalSize = {
-      topHeight: windowDimensions.height*0.65,
-      topWidth:windowDimensions.width*0.65,
-      listHeight:windowDimensions.height*0.475,
-      headingFontSize:windowDimensions.height*0.025,
-    }
-    const smallModalSize ={
-      topHeight: windowDimensions.height*0.4,
-      topWidth:windowDimensions.width*0.4,
-      listHeight:windowDimensions.height*0.275,
-      headingFontSize:windowDimensions.height*0.02,
-    }
-    if(small === "true")
-    {
+      topHeight: windowDimensions.height * 0.65,
+      topWidth: windowDimensions.width * 0.65,
+      listHeight: windowDimensions.height * 0.475,
+      headingFontSize: windowDimensions.height * 0.025,
+    };
+    const smallModalSize = {
+      topHeight: windowDimensions.height * 0.4,
+      topWidth: windowDimensions.width * 0.4,
+      listHeight: windowDimensions.height * 0.275,
+      headingFontSize: windowDimensions.height * 0.02,
+    };
+    if (small === "true") {
       return smallModalSize;
-    }
-    else{
+    } else {
       return largeModalSize;
     }
-  }
-  const size = getSize(isModalSmall)
+  };
+  const size = getSize(isModalSmall);
 
   //#endregion
 
   //#region Icons
   const SearchIcon: IIconProps = { iconName: "Search" };
   const CancelIcon: IIconProps = { iconName: "Cancel" };
-  const AddIcon: IIconProps = {iconName:"Add"};
+  const AddIcon: IIconProps = { iconName: "Add" };
   //#endregion
 
   function getWindowDimensions() {
@@ -117,11 +114,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         columnArray.length > 0
       ) {
         let minWidth;
-        if(isModalSmall==="true")
-        {
+        if (isModalSmall === "true") {
           minWidth = (windowDimensions.width * 0.3) / columnArray.length;
-        }
-        else{
+        } else {
           minWidth = (windowDimensions.width * 0.4) / columnArray.length;
         }
         for (let i = 0; i < columnArray.length; i++) {
@@ -174,8 +169,6 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   };
   //#endregion
 
-
-
   //#region Event Handlers
   const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -198,10 +191,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         setNextLink(data.nextLink);
       }
     }
-    if(prevSelection)
-    {
-      selection.setRangeSelected(0,prevSelection.length,true,false);
-      
+    if (prevSelection) {
+      selection.setRangeSelected(0, prevSelection.length, true, false);
     }
     setPageNumber(1);
   };
@@ -215,28 +206,26 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     setModalOpen(false);
     setColumnData([]);
     setSelectionArray([]);
-    
   };
   const handleOnNewClick = () => {
     setPanelOpen(true);
-  }
+  };
   const dismissPanel = () => {
     setPanelOpen(false);
-  }
+  };
   //#endregion
-  const getRequestedPage = async(page:number) => {
+  const getRequestedPage = async (page: number) => {
     const prevSelection = selectionArray;
-    const data = await getSearchPage(context,page,search)
+    const data = await getSearchPage(context, page, search);
     const any = data as any;
     setNextLink(data.nextLink);
-    setColumnData(maintainSelectedEntityData(data.entities,prevSelection));
-    if(prevSelection)
-    {
+    setColumnData(maintainSelectedEntityData(data.entities, prevSelection));
+    if (prevSelection) {
       const selectIndex = prevSelection.length;
-      selection.setRangeSelected(0,selectIndex,true,false);
+      selection.setRangeSelected(0, selectIndex, true, false);
     }
     setFetchXMLPagingCookie(any.fetchXmlPagingCookie);
-  }
+  };
   //#region useEffect
 
   useEffect(() => {
@@ -248,335 +237,204 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // useEffect(() => {
-  //   handleOnLoad();
-  // }, []);
+  useEffect(() => {
+    console.log(columnData)
+  }, [columnData]);
 
   //#endregion
-if(enableNew)
-{
+
   return (
     <>
-    <Modal isOpen={isModalOpen}>
-      <div
-        style={{
-          maxWidth:windowDimensions.width*0.9,
-          maxHeight:windowDimensions.height*0.9,
-          width: size.topWidth,
-          height: size.topHeight,
-          padding: "8px",
-          position: "relative",
-        }}
-      >
-        <div style={{ position: "absolute", top: 0, right: 0 }}>
-          <IconButton onClick={handleOnCancelClick} iconProps={CancelIcon} />
-        </div>
-        <div>
+      <Modal isOpen={isModalOpen}>
+        <div
+          style={{
+            maxWidth: windowDimensions.width * 0.9,
+            maxHeight: windowDimensions.height * 0.9,
+            width: size.topWidth,
+            height: size.topHeight,
+            padding: "8px",
+            position: "relative",
+          }}
+        >
+          <div style={{ position: "absolute", top: 0, right: 0 }}>
+            <IconButton onClick={handleOnCancelClick} iconProps={CancelIcon} />
+          </div>
           <div>
-            <div style={{ fontSize: size.headingFontSize }}>Lookup Records</div>
+            <div>
+              <div style={{ fontSize: size.headingFontSize }}>
+                Lookup Records
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "end",
+              }}
+            >
+              <div style={{ fontSize: windowDimensions.height * 0.015 }}>
+                Choose your records and click select to continue
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  height: windowDimensions.height * 0.03,
+                  minHeight: "10px",
+                }}
+              >
+                <input
+                  style={{
+                    border: "1px solid rgb(216,216,216)",
+                    borderRight: "none",
+                    borderRadius: "1px 0px 1px 0px",
+                    minHeight: "10px",
+                  }}
+                  placeholder={"Search"}
+                  onChange={onSearchChange}
+                ></input>
+                <TooltipHost
+                  id={useId("searchtooltip")}
+                  setAriaDescribedBy={false}
+                  content="Search"
+                >
+                  <IconButton
+                    iconProps={SearchIcon}
+                    ariaLabel="Search"
+                    onClick={handleOnSearchClick}
+                    style={{
+                      border: "1px solid rgb(216,216,216)",
+                      background: buttonColor,
+                      color: iconColor,
+                      height: windowDimensions.height * 0.03,
+                      width: windowDimensions.height * 0.03,
+                      minHeight: "10px",
+                      minWidth: "10px",
+                      maxHeight: "32px",
+                      maxWidth: "32px",
+                    }}
+                  />
+                </TooltipHost>
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              overflow: "auto",
+              height: size.listHeight,
+              width: "100%",
+              margin: "auto",
+            }}
+          >
+            <ScrollablePane
+              style={{
+                height: "inherit",
+                paddingTop: 0,
+                marginTop: windowDimensions.height * 0.09,
+                marginBottom: "8px",
+                width: "inherit",
+              }}
+            >
+              <DetailsList
+                className={classNames.hideSquare}
+                items={columnData}
+                columns={columns}
+                isHeaderVisible={true}
+                onRenderDetailsHeader={onRenderDetailsHeader}
+                selection={selection}
+                selectionMode={SelectionMode.multiple}
+                selectionPreservedOnEmptyClick={true}
+                enterModalSelectionOnTouch={true}
+                ariaLabelForSelectionColumn="Toggle selection"
+                ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                checkButtonAriaLabel="select row"
+                onRenderRow={onRenderRow}
+              />
+            </ScrollablePane>
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              bottom: "8px",
+              left: "8px",
+            }}
+          >
+            <Navigation
+              context={context}
+              pageNumber={pageNumber || 1}
+              setPageNumber={setPageNumber}
+              nextLink={nextLink}
+              fetchXMLPagingCookie={fetchXMLPagingCookie}
+              setColumnData={setColumnData}
+              getRequestedPage={getRequestedPage}
+              windowDimensions={windowDimensions}
+            />
           </div>
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "end",
+              justifyContent: "flex-end",
+              position: "absolute",
+              bottom: 8,
+              right: 8,
             }}
           >
-            <div style={{fontSize:windowDimensions.height*0.015}}>Choose your records and click select to continue</div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", height:windowDimensions.height*0.03, minHeight:"10px" }}>
-              <input
-                style={{ border:"1px solid rgb(216,216,216)",borderRight: "none", borderRadius:"1px 0px 1px 0px", 
-                minHeight:"10px"
+            <DefaultButton
+              style={{
+                background: buttonColor,
+                color: "white",
+                marginRight: "8px",
+                width: windowDimensions.height * 0.075,
+                minWidth: "40px",
+                height: windowDimensions.height * 0.03,
+                minHeight: "16px",
+                fontSize: windowDimensions.height * 0.013,
               }}
-                placeholder={"Search"}
-                onChange={onSearchChange}
-              ></input>
-              <TooltipHost
-                id={useId("searchtooltip")}
-                setAriaDescribedBy={false}
-                content="Search"
-              >
-                <IconButton
-                  iconProps={SearchIcon}
-                  ariaLabel="Search"
-                  onClick={handleOnSearchClick}
-                  style={{
-                    border: "1px solid rgb(216,216,216)",
-                    background: buttonColor,
-                    color: iconColor,
-                    height:windowDimensions.height*0.03,
-                    width:windowDimensions.height*0.03,
-                    minHeight:"10px",
-                    minWidth:"10px",
-                    maxHeight:"32px",
-                    maxWidth:"32px",
-                  }}
-                />
-              </TooltipHost>
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            overflow: "auto",
-            height: size.listHeight,
-            width: "100%",
-            margin: "auto",
-          }}
-        >
-          <ScrollablePane
-            style={{ height: "inherit", paddingTop: 0, marginTop: windowDimensions.height*0.09, marginBottom:"8px", width: "inherit" }}
-          >
-            <DetailsList
-              className={classNames.hideSquare}
-              items={columnData}
-              columns={columns}
-              isHeaderVisible={true}
-              onRenderDetailsHeader={onRenderDetailsHeader}
-              selection={selection}
-              selectionMode={SelectionMode.multiple}
-              selectionPreservedOnEmptyClick={true}
-              enterModalSelectionOnTouch={true}
-              ariaLabelForSelectionColumn="Toggle selection"
-              ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-              checkButtonAriaLabel="select row"
-              onRenderRow={onRenderRow}
-            />
-          </ScrollablePane>
-        </div>
-        <div style={{
-          position:"absolute",
-          bottom:"8px",
-          left:"8px"
-        }}>
-        <Navigation
-          context={context}
-          pageNumber={pageNumber || 1}
-          setPageNumber={setPageNumber}
-          nextLink={nextLink}
-          fetchXMLPagingCookie={fetchXMLPagingCookie}
-          setColumnData={setColumnData}
-          getRequestedPage={getRequestedPage}
-          windowDimensions={windowDimensions}
-        />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            position: "absolute",
-            bottom: 8,
-            right: 8,
-          }}
-        >
-          <DefaultButton
-            style={{
-              background: buttonColor,
-              color: "white",
-              marginRight: "8px",
-              width:windowDimensions.height*0.075,
-              minWidth:"40px",
-              height:windowDimensions.height*0.03,
-              minHeight:"16px",
-              fontSize:windowDimensions.height*0.013,
-            }}
-            onClick={handleOnSelectClick}
-          >
-            Select
-          </DefaultButton>
-          <DefaultButton 
-          style={{
-            width:windowDimensions.height*0.075,
-            minWidth:"40px",
-            height:windowDimensions.height*0.03,
-            minHeight:"16px",
-            fontSize:windowDimensions.height*0.013,
-          }}
-          onClick={handleOnCancelClick}>Cancel</DefaultButton>
-          <DefaultButton 
-          style={{
-            width:windowDimensions.height*0.075,
-            minWidth:"40px",
-            height:windowDimensions.height*0.03,
-            minHeight:"16px",
-            fontSize:windowDimensions.height*0.013,
-          }}
-          onClick={handleOnNewClick}>New</DefaultButton>
-        </div>
-      </div>
-    </Modal>
-    <Panel 
-    isOpen={isPanelOpen}
-    onDismiss={dismissPanel}
-    >
-      <NewEntry 
-      context={context} 
-      columnData={columnData} 
-      setColumnData={setColumnData}
-      setPanelOpen={setPanelOpen}
-      />
-    </Panel>
-    </>
-  );
-}
-  return (
-    <>
-    <Modal isOpen={isModalOpen}>
-      <div
-        style={{
-          maxWidth:windowDimensions.width*0.9,
-          maxHeight:windowDimensions.height*0.9,
-          width: size.topWidth,
-          height: size.topHeight,
-          padding: "8px",
-          position: "relative",
-        }}
-      >
-        <div style={{ position: "absolute", top: 0, right: 0 }}>
-          <IconButton onClick={handleOnCancelClick} iconProps={CancelIcon} />
-        </div>
-        <div>
-          <div>
-            <div style={{ fontSize: size.headingFontSize }}>Lookup Records</div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "end",
-            }}
-          >
-            <div style={{fontSize:windowDimensions.height*0.015}}>Choose your records and click select to continue</div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", height:windowDimensions.height*0.03, minHeight:"10px" }}>
-              <input
-                style={{ border:"1px solid rgb(216,216,216)",borderRight: "none", borderRadius:"1px 0px 1px 0px", 
-                minHeight:"10px"
+              onClick={handleOnSelectClick}
+            >
+              Select
+            </DefaultButton>
+            <DefaultButton
+              style={{
+                width: windowDimensions.height * 0.075,
+                minWidth: "40px",
+                height: windowDimensions.height * 0.03,
+                minHeight: "16px",
+                fontSize: windowDimensions.height * 0.013,
               }}
-                placeholder={"Search"}
-                onChange={onSearchChange}
-              ></input>
-              <TooltipHost
-                id={useId("searchtooltip")}
-                setAriaDescribedBy={false}
-                content="Search"
+              onClick={handleOnCancelClick}
+            >
+              Cancel
+            </DefaultButton>
+            {enableNew ? (
+              <DefaultButton
+                style={{
+                  width: windowDimensions.height * 0.075,
+                  minWidth: "40px",
+                  height: windowDimensions.height * 0.03,
+                  minHeight: "16px",
+                  fontSize: windowDimensions.height * 0.013,
+                }}
+                onClick={handleOnNewClick}
               >
-                <IconButton
-                  iconProps={SearchIcon}
-                  ariaLabel="Search"
-                  onClick={handleOnSearchClick}
-                  style={{
-                    border: "1px solid rgb(216,216,216)",
-                    background: buttonColor,
-                    color: iconColor,
-                    height:windowDimensions.height*0.03,
-                    width:windowDimensions.height*0.03,
-                    minHeight:"10px",
-                    minWidth:"10px",
-                    maxHeight:"32px",
-                    maxWidth:"32px",
-                  }}
-                />
-              </TooltipHost>
-            </div>
+                New
+              </DefaultButton>
+            ) : null}
           </div>
         </div>
-        <div
-          style={{
-            overflow: "auto",
-            height: size.listHeight,
-            width: "100%",
-            margin: "auto",
-          }}
-        >
-          <ScrollablePane
-            style={{ height: "inherit", paddingTop: 0, marginTop: windowDimensions.height*0.09, marginBottom:"8px", width: "inherit" }}
-          >
-            <DetailsList
-              className={classNames.hideSquare}
-              items={columnData}
-              columns={columns}
-              isHeaderVisible={true}
-              onRenderDetailsHeader={onRenderDetailsHeader}
-              selection={selection}
-              selectionMode={SelectionMode.multiple}
-              selectionPreservedOnEmptyClick={true}
-              enterModalSelectionOnTouch={true}
-              ariaLabelForSelectionColumn="Toggle selection"
-              ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-              checkButtonAriaLabel="select row"
-              onRenderRow={onRenderRow}
-            />
-          </ScrollablePane>
-        </div>
-        <div style={{
-          position:"absolute",
-          bottom:"8px",
-          left:"8px"
-        }}>
-        <Navigation
-          context={context}
-          pageNumber={pageNumber || 1}
-          setPageNumber={setPageNumber}
-          nextLink={nextLink}
-          fetchXMLPagingCookie={fetchXMLPagingCookie}
-          setColumnData={setColumnData}
-          getRequestedPage={getRequestedPage}
-          windowDimensions={windowDimensions}
-        />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            position: "absolute",
-            bottom: 8,
-            right: 8,
-          }}
-        >
-          <DefaultButton
-            style={{
-              background: buttonColor,
-              color: "white",
-              marginRight: "8px",
-              width:windowDimensions.height*0.075,
-              minWidth:"40px",
-              height:windowDimensions.height*0.03,
-              minHeight:"16px",
-              fontSize:windowDimensions.height*0.013,
-            }}
-            onClick={handleOnSelectClick}
-          >
-            Select
-          </DefaultButton>
-          <DefaultButton 
-          style={{
-            width:windowDimensions.height*0.075,
-            minWidth:"40px",
-            height:windowDimensions.height*0.03,
-            minHeight:"16px",
-            fontSize:windowDimensions.height*0.013,
-          }}
-          onClick={handleOnCancelClick}>Cancel</DefaultButton>
-          {/* <DefaultButton 
-          style={{
-            width:windowDimensions.height*0.075,
-            minWidth:"40px",
-            height:windowDimensions.height*0.03,
-            minHeight:"16px",
-            fontSize:windowDimensions.height*0.013,
-          }}
-          onClick={handleOnNewClick}>New</DefaultButton> */}
-        </div>
-      </div>
-    </Modal>
-    {/* <Panel 
-    isOpen={isPanelOpen}
-    onDismiss={dismissPanel}
-    >
-      <NewEntry context={context}/>
-    </Panel> */}
+      </Modal>
+      <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
+        {enableNew ? (
+          <NewEntry
+            context={context}
+            setColumnData={setColumnData}
+            setPanelOpen={setPanelOpen}
+            selection={selection}
+            selectionArray={selectionArray}
+          />
+        ) : null}
+      </Panel>
     </>
   );
 };

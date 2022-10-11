@@ -2,14 +2,16 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   IMetadataResponse,
   INewEntry,
+  IPickListMetadata,
   ISimplifiedMetadata,
 } from "./NewEntry.types";
 import parse from "html-react-parser";
 import { Spinner, SpinnerSize } from "@fluentui/react/lib/Spinner";
 import { getEntityAfterCreate } from "../functions/apicalls";
+import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 
 const NewEntry = (props: INewEntry) => {
-  const { context, columnData, setColumnData } = props;
+  const { context, setColumnData, selection, selectionArray, setPanelOpen } = props;
   const [formData, setFormData] = useState<string[]>([]);
   const [formHTML, setFormHTML] = useState<any>();
   const [isCreating, setIsCreating] = useState(false);
@@ -20,11 +22,31 @@ const NewEntry = (props: INewEntry) => {
     context.parameters.entityName.raw![0].toLocaleUpperCase() +
     context.parameters.entityName.raw!.slice(1);
 
+    const classNames = mergeStyleSets({
+        form:{
+            "input": {
+                width:"90%",
+            },
+            "textarea": {
+                border:"1px solid black",
+                padding:"1px 2px",
+                width:"90%"
+            },
+            "select":{
+                width:"90%",
+                padding:"1px 2px",
+            },
+            "option":{
+                width:"90%",
+                textWrap:"wrap"
+            }
+        }
+    })
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const form = document.getElementById(FORM_ID);
+    const form = document.getElementById(FORM_ID) as HTMLFormElement;
     if (form) {
-      const formData = new FormData(form as HTMLFormElement);
+      const formData = new FormData(form);
       let uploadData = {} as any;
       formData.forEach((value, key) => {
         uploadData[key] = value;
@@ -36,8 +58,15 @@ const NewEntry = (props: INewEntry) => {
         uploadData
       );
       if (data) {
+        const prevSelection = selectionArray;
        const newVal = await getEntityAfterCreate(context,data);
+       console.log(newVal);
        setColumnData((prev)=> [newVal,...prev]);
+       if(prevSelection) {
+        selection.setRangeSelected(1,prevSelection.length,true,false);
+       }
+       form.reset();
+       setPanelOpen(false);
        setIsCreating(false);
       }
     }
@@ -56,15 +85,35 @@ const NewEntry = (props: INewEntry) => {
     const metadataArray = data.value;
     const filteredArray = metadataArray.filter(
       (item) =>
-        item.IsRequiredForForm === true ||
-        item.RequiredLevel.Value === "Recommended"
+        
+        (item.IsRequiredForForm === true ||
+        item.RequiredLevel.Value === "Recommended" ||
+        item.RequiredLevel.Value === "ApplicationRequired")
+        && item.IsValidForForm === true 
+        
     ) as ISimplifiedMetadata[]; // || (item.RequiredLevel.Value !== "None" && item.IsPrimaryId === false)
     // filteredArray.forEach((item)=> {
     //     console.log(item.AttributeType,item.IsPrimaryId,item.LogicalName,item.RequiredLevel.Value, item.Description, item.DisplayName);
     // })
-    return filteredArray;
+    const numberSortedArray = filteredArray.sort((a,b) => a.ColumnNumber-b.ColumnNumber);
+    return numberSortedArray;
   };
-  const getPickListMetadata = async () => {};
+  const getPickListMetadata = async (id:string) => {
+    const any = context as any;
+    const page = any.page;
+    const data = (await (
+      await fetch(
+        page.getClientUrl() +
+          `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
+            .entityName.raw!}')/Attributes(LogicalName='${id}')/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$select=LogicalName&$expand=GlobalOptionSet($select=Options)`
+      )
+    ).json()) as IPickListMetadata;
+    const picklist = data.GlobalOptionSet.Options.map((item)=> {
+        return {Value:item.Value,Label:item.Label.UserLocalizedLabel.Label}
+    })
+    console.log(picklist);
+    return picklist;
+  };
   const createFormHTML = async () => {
     setIsLoading(true);
     const fieldMetadata = await getEntityMetaData();
@@ -84,7 +133,14 @@ const NewEntry = (props: INewEntry) => {
     // const Label = field.DisplayName.UserLocalizedLabel.Label || field.DisplayName.LocalizedLabels[0].Label ||  "";
     let string = "";
     console.log(TypeName, FieldType, requiredLevel, field.LogicalName);
-
+    const getRequired = () => {
+        if(requiredLevel !== "SystemRequired" && requiredLevel !== "ApplicationRequired")
+        {
+            return true;
+        }
+        return false;
+    }
+    const required = getRequired();
     switch (field.AttributeType) {
       case "Boolean":
         string = `<div>BOOLEAN</div><br/>`;
@@ -97,9 +153,9 @@ const NewEntry = (props: INewEntry) => {
                 <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-                <input type={"datetime-local"} name=${field.LogicalName} id={${
+                <input type="datetime-local" name=${field.LogicalName} id=${
           field.LogicalName
-        }+"id"} required={true}></input><br/>
+        +"id"} required=${required}></input><br/>
                 <br/>
                 `;
         break;
@@ -108,9 +164,9 @@ const NewEntry = (props: INewEntry) => {
                 <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-                <input type={"number"} name=${field.LogicalName} id={${
+                <input type="number" name=${field.LogicalName} id=${
           field.LogicalName
-        }+"id"} required={true} step="any"></input><br/><br/>
+        +"id"} required=${required} step="any"></input><br/><br/>
                 `;
         break;
       case "Double":
@@ -118,18 +174,18 @@ const NewEntry = (props: INewEntry) => {
             <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-            <input type={"number"} name=${
+            <input type="number" name=${
               field.LogicalName
-            } id={field.LogicalName+"id"} required={true} step="any"></input><br/><br/>`;
+            } id=${field.LogicalName+"id"} required=${required} step="any"></input><br/><br/>`;
         break;
       case "Integer":
         string = `
             <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-            <input type={"number"} name=${field.LogicalName} id={${
-          field.LogicalName
-        }+"id"} required={true} step="1"></input><br/><br/>
+            <input type="number" name=${field.LogicalName} id=${
+          field.LogicalName + "id"
+        } required=${required} step="1"></input><br/><br/>
         `;
         break;
       case "Lookup":
@@ -142,9 +198,9 @@ const NewEntry = (props: INewEntry) => {
             <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-            <textarea id={${field.LogicalName}+"id"} name=${
+            <textarea id=${field.LogicalName + "id"} name=${
           field.LogicalName
-        } required={true}></textarea>
+        } required={${required}}></textarea>
             <br/><br/>
             `;
         break;
@@ -153,9 +209,9 @@ const NewEntry = (props: INewEntry) => {
                 <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-                <input type={"number"} name=${field.LogicalName} id={${
-          field.LogicalName
-        }+"id"} required={true} step="any"></input>
+                <input type="number" name=${field.LogicalName} id=${
+          field.LogicalName + "id"
+        } required=${required} step="any"></input>
                 <br/><br/>
             `;
         break;
@@ -164,8 +220,23 @@ const NewEntry = (props: INewEntry) => {
       case "PartyList":
         break;
       case "Picklist":
-        const data = await getPickListMetadata();
-        string = `<div>PICKLIST</div>`;
+        const data = await getPickListMetadata(field.LogicalName);
+        const optionArray = data.map((item)=> {
+            return `<option value="${item.Value}">${item.Label}</option>`
+        })
+        const optionstring = optionArray.join("");
+        string = `<label htmlFor=${field.LogicalName}>${
+            field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName}
+            </label><br/>
+            <select name=${field.LogicalName} id=${
+                field.LogicalName
+              + "id"} >
+              <option disabled selected value></option>
+            ` + optionstring + `
+
+        </select>
+        <br/>
+        `;
         break;
       case "State":
         break;
@@ -176,9 +247,9 @@ const NewEntry = (props: INewEntry) => {
                 <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-                <input type={"text"} name=${field.LogicalName} id={${
-          field.LogicalName
-        }+"id"} required={true}></input>
+                <input type="text" name=${field.LogicalName} id=${
+          field.LogicalName + "id"
+        } required=${required}></input>
                 <br/><br/>
             `;
         break;
@@ -193,9 +264,9 @@ const NewEntry = (props: INewEntry) => {
                 <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-                <input type={"number"} name=${field.LogicalName} id={${
-          field.LogicalName
-        }+"id"} required={true} step="1"></input>
+                <input type="number" name=${field.LogicalName} id=${
+          field.LogicalName + "id"
+        } required=${required} step="1"></input>
                 <br/><br/>
             `;
         break;
@@ -217,7 +288,7 @@ const NewEntry = (props: INewEntry) => {
   }, [formData]);
 
   return (
-    <div>
+    <div className={classNames.form}>
       <h2>Create New {etn}</h2>
       <br />
       {isLoading === true ? (
@@ -228,7 +299,6 @@ const NewEntry = (props: INewEntry) => {
       ) : (
         <form onSubmit={onSubmit} id={FORM_ID}>
           {formHTML ? parse(formHTML) : null}
-          <br />
           <input type={"submit"} value="Submit"></input>
         </form>     
       )}
