@@ -74,7 +74,6 @@ export class MultiSelectLookupModal implements ComponentFramework.StandardContro
      */
     public getOutputs(): IOutputs
     {
-        console.log(this._outputVariable);
         return {
             outputVariable:this._outputVariable
         } as IOutputs;

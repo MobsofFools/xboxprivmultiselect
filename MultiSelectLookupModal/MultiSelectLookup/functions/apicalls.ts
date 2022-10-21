@@ -67,7 +67,12 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
   }
 
   export const getEntityInitialResults = async (context:ComponentFramework.Context<IInputs>) => {
-    const entityName = context.parameters.entityName.raw!
+    let entityName = context.parameters.entityName.raw!
+    // TEMP FIX?
+    if(window.location.href.includes("portal")) 
+    {
+      entityName = context.parameters.entityName.raw! + "s"
+    }
     const selectedColumns = context.parameters.selectedColumns.raw!
     const pageLength = parseInt(context.parameters.pageLength.raw!) || 50;
     const queryString = `?$select=${selectedColumns}&$orderby=createdon desc`

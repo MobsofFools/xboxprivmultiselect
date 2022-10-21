@@ -15,5 +15,7 @@ export type IMultiSelectModal = {
     selection?:any;
     setPageNumber:Dispatch<SetStateAction<number>>;
     pageNumber:number;
+    error:boolean
+    setError:Dispatch<SetStateAction<boolean>>;
 
 }

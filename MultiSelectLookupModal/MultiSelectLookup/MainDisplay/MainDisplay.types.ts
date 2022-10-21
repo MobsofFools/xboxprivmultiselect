@@ -10,4 +10,5 @@ export type IMainDisplay = {
     outputVariable?: string;
     selection?:any;
     setPageNumber:Dispatch<SetStateAction<number>>;
+    setError:Dispatch<SetStateAction<boolean>>;
 }

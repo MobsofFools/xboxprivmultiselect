@@ -18,18 +18,22 @@
       -->
     </external-service-usage>
     <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
-    <property name="outputVariable" display-name-key="outputVariable" description-key="Output data in a JSON string format" of-type="SingleLine.Text" usage="bound" required="true" />
-    <property name="entityName" display-name-key="entityName" description-key="Entity Name eg:incident" of-type="SingleLine.Text" usage="input" required="true" />
-    <property name="displayedColumn" display-name-key="displayedColumn" description-key="Select the column shown outside of select eg:title " of-type="SingleLine.Text" usage="input" required="true" />
-    <property name="selectedColumns" display-name-key="selectedColumns" description-key="Columns separated by commas eg:title,ticketnumber,fieldname with no space after the comma" of-type="SingleLine.Text" usage="input" required="true" />
-    <property name="selectedColumnsHeaders" display-name-key="selectedColumnsHeaders" description-key="Column headers separated by commas eg: Title,Ticket Number,Field Name with no space after the comma" of-type="SingleLine.Text" usage="input" required="true" />
-    <property name="pageLength" display-name-key="pageLength" description-key="Number of Records Per page default 50" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="buttonColor" display-name-key="Button Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=rgb(141,202,82)" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="iconColor" display-name-key="Icon Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue. default=white " of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="isModalSmall" display-name-key="isModalSmall" description-key="true or false only. default true. false for larger modal" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="isPortal" display-name-key="isPortal" description-key="true or false" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="crmURI" display-name-key="crmURI" description-key="url of CRM, used if on portal" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="enableNew" display-name-key="enableNew" description-key="true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="outputVariable" display-name-key="Output Variable" description-key="Output data in a JSON string format" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="entityName" display-name-key="Entity Name" description-key="Entity Name eg:incident" of-type="SingleLine.Text" usage="input" required="true" />
+    <property name="displayedColumn" display-name-key="Displayed Column" description-key="Select the column shown outside of select eg:title " of-type="SingleLine.Text" usage="input" required="true" />
+    <property name="selectedColumns" display-name-key="Selected Columns" description-key="Columns separated by commas eg:title,ticketnumber,fieldname with no space after the comma" of-type="SingleLine.Text" usage="input" required="true" />
+    <property name="selectedColumnsHeaders" display-name-key="Selected Column Headings" description-key="Column headers separated by commas eg: Title,Ticket Number,Field Name with no space after the comma" of-type="SingleLine.Text" usage="input" required="true" />
+    <property name="pageLength" display-name-key="Page Length" description-key="Number of Records Per page default 50" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="buttonColor" display-name-key="Button Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=white" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="iconColor" display-name-key="Icon Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue. default=#2f5fef " of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="selectButtonColor" display-name-key="Select Button Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=#2f5fef" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="selectButtonFontColor" display-name-key="Select Button Font Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=white" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="enableNew" display-name-key="Enable New" description-key="true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="redirectForNew" display-name-key="Redirect for New" description-key="true or false: default true" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="newPortalRedirectURL" display-name-key="newPortalRedirectURL" description-key="url of new entry on portal" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="newCRMRedirectURL" display-name-key="newCRMRedirectURL" description-key="url of new entry on crm" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="crmURI" display-name-key="crmURI" description-key="url of CRM, used if not redirecting for new" of-type="SingleLine.Text" usage="input" required="false" />
+    
 
     
     

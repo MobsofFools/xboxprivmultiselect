@@ -14,6 +14,7 @@ const MultiSelect = (props: IMultiSelect) => {
   const [selectionArray, setSelectionArray] =
   useState<ComponentFramework.WebApi.Entity[]>();
   const [pageNumber, setPageNumber] = useState(1);
+  const [error, setError] = useState(false);
 
   useEffect(()=> {
     onChange(outputVariable);
@@ -47,6 +48,7 @@ const MultiSelect = (props: IMultiSelect) => {
           outputVariable={outputVariable}
           selection={selection}
           setPageNumber={setPageNumber}
+          setError={setError}
           />
         <MultiSelectModal 
           setOutputVariable={setOutputVariable}
@@ -62,6 +64,8 @@ const MultiSelect = (props: IMultiSelect) => {
           selection={selection}
           pageNumber={pageNumber}
           setPageNumber={setPageNumber}
+          error={error}
+          setError={setError}
         />
       </>
     );

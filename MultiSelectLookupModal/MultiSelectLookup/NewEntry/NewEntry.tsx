@@ -11,7 +11,8 @@ import { getEntityAfterCreate } from "../functions/apicalls";
 import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 
 const NewEntry = (props: INewEntry) => {
-  const { context, setColumnData, selection, selectionArray, setPanelOpen } = props;
+  const { context, setColumnData, selection, selectionArray, setPanelOpen } =
+    props;
   const [formData, setFormData] = useState<string[]>([]);
   const [formHTML, setFormHTML] = useState<any>();
   const [isCreating, setIsCreating] = useState(false);
@@ -22,26 +23,26 @@ const NewEntry = (props: INewEntry) => {
     context.parameters.entityName.raw![0].toLocaleUpperCase() +
     context.parameters.entityName.raw!.slice(1);
 
-    const classNames = mergeStyleSets({
-        form:{
-            "input": {
-                width:"90%",
-            },
-            "textarea": {
-                border:"1px solid black",
-                padding:"1px 2px",
-                width:"90%"
-            },
-            "select":{
-                width:"90%",
-                padding:"1px 2px",
-            },
-            "option":{
-                width:"90%",
-                textWrap:"wrap"
-            }
-        }
-    })
+  const classNames = mergeStyleSets({
+    form: {
+      input: {
+        width: "90%",
+      },
+      textarea: {
+        border: "1px solid black",
+        padding: "1px 2px",
+        width: "90%",
+      },
+      select: {
+        width: "90%",
+        padding: "1px 2px",
+      },
+      option: {
+        width: "90%",
+        textWrap: "wrap",
+      },
+    },
+  });
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const form = document.getElementById(FORM_ID) as HTMLFormElement;
@@ -59,15 +60,15 @@ const NewEntry = (props: INewEntry) => {
       );
       if (data) {
         const prevSelection = selectionArray;
-       const newVal = await getEntityAfterCreate(context,data);
-       console.log(newVal);
-       setColumnData((prev)=> [newVal,...prev]);
-       if(prevSelection) {
-        selection.setRangeSelected(1,prevSelection.length,true,false);
-       }
-       form.reset();
-       setPanelOpen(false);
-       setIsCreating(false);
+        const newVal = await getEntityAfterCreate(context, data);
+        console.log(newVal);
+        setColumnData((prev) => [newVal, ...prev]);
+        if (prevSelection) {
+          selection.setRangeSelected(1, prevSelection.length, true, false);
+        }
+        form.reset();
+        setPanelOpen(false);
+        setIsCreating(false);
       }
     }
   };
@@ -75,9 +76,11 @@ const NewEntry = (props: INewEntry) => {
   const getEntityMetaData = async () => {
     const any = context as any;
     const page = any.page;
+    const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
+    
     const data = (await (
       await fetch(
-        page.getClientUrl() +
+        crmURI +
           `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
             .entityName.raw!}')/Attributes`
       )
@@ -85,32 +88,34 @@ const NewEntry = (props: INewEntry) => {
     const metadataArray = data.value;
     const filteredArray = metadataArray.filter(
       (item) =>
-        
         (item.IsRequiredForForm === true ||
-        item.RequiredLevel.Value === "Recommended" ||
-        item.RequiredLevel.Value === "ApplicationRequired")
-        && item.IsValidForForm === true 
-        
+          item.RequiredLevel.Value === "Recommended" ||
+          item.RequiredLevel.Value === "ApplicationRequired") &&
+        item.IsValidForForm === true
     ) as ISimplifiedMetadata[]; // || (item.RequiredLevel.Value !== "None" && item.IsPrimaryId === false)
     // filteredArray.forEach((item)=> {
     //     console.log(item.AttributeType,item.IsPrimaryId,item.LogicalName,item.RequiredLevel.Value, item.Description, item.DisplayName);
     // })
-    const numberSortedArray = filteredArray.sort((a,b) => a.ColumnNumber-b.ColumnNumber);
+    const numberSortedArray = filteredArray.sort(
+      (a, b) => a.ColumnNumber - b.ColumnNumber
+    );
     return numberSortedArray;
   };
-  const getPickListMetadata = async (id:string) => {
+  const getPickListMetadata = async (id: string) => {
     const any = context as any;
     const page = any.page;
+    const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
     const data = (await (
       await fetch(
-        page.getClientUrl() +
+        crmURI +
           `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
-            .entityName.raw!}')/Attributes(LogicalName='${id}')/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$select=LogicalName&$expand=GlobalOptionSet($select=Options)`
+            .entityName
+            .raw!}')/Attributes(LogicalName='${id}')/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$select=LogicalName&$expand=GlobalOptionSet($select=Options)`
       )
     ).json()) as IPickListMetadata;
-    const picklist = data.GlobalOptionSet.Options.map((item)=> {
-        return {Value:item.Value,Label:item.Label.UserLocalizedLabel.Label}
-    })
+    const picklist = data.GlobalOptionSet.Options.map((item) => {
+      return { Value: item.Value, Label: item.Label.UserLocalizedLabel.Label };
+    });
     console.log(picklist);
     return picklist;
   };
@@ -134,12 +139,14 @@ const NewEntry = (props: INewEntry) => {
     let string = "";
     console.log(TypeName, FieldType, requiredLevel, field.LogicalName);
     const getRequired = () => {
-        if(requiredLevel !== "SystemRequired" && requiredLevel !== "ApplicationRequired")
-        {
-            return true;
-        }
-        return false;
-    }
+      if (
+        requiredLevel === "SystemRequired" ||
+        requiredLevel === "ApplicationRequired"
+      ) {
+        return true;
+      }
+      return false;
+    };
     const required = getRequired();
     switch (field.AttributeType) {
       case "Boolean":
@@ -154,8 +161,8 @@ const NewEntry = (props: INewEntry) => {
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
                 <input type="datetime-local" name=${field.LogicalName} id=${
-          field.LogicalName
-        +"id"} required=${required}></input><br/>
+          field.LogicalName + "id"
+        } required=${required}></input><br/>
                 <br/>
                 `;
         break;
@@ -165,8 +172,8 @@ const NewEntry = (props: INewEntry) => {
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
                 <input type="number" name=${field.LogicalName} id=${
-          field.LogicalName
-        +"id"} required=${required} step="any"></input><br/><br/>
+          field.LogicalName + "id"
+        } required=${required} step="any"></input><br/><br/>
                 `;
         break;
       case "Double":
@@ -174,9 +181,9 @@ const NewEntry = (props: INewEntry) => {
             <label htmlFor=${field.LogicalName}>${
           field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
         }</label><br/>
-            <input type="number" name=${
-              field.LogicalName
-            } id=${field.LogicalName+"id"} required=${required} step="any"></input><br/><br/>`;
+            <input type="number" name=${field.LogicalName} id=${
+          field.LogicalName + "id"
+        } required=${required} step="any"></input><br/><br/>`;
         break;
       case "Integer":
         string = `
@@ -221,18 +228,20 @@ const NewEntry = (props: INewEntry) => {
         break;
       case "Picklist":
         const data = await getPickListMetadata(field.LogicalName);
-        const optionArray = data.map((item)=> {
-            return `<option value="${item.Value}">${item.Label}</option>`
-        })
+        const optionArray = data.map((item) => {
+          return `<option value="${item.Value}">${item.Label}</option>`;
+        });
         const optionstring = optionArray.join("");
-        string = `<label htmlFor=${field.LogicalName}>${
-            field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName}
+        string =
+          `<label htmlFor=${field.LogicalName}>${
+            field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
+          }
             </label><br/>
-            <select name=${field.LogicalName} id=${
-                field.LogicalName
-              + "id"} >
+            <select name=${field.LogicalName} id=${field.LogicalName + "id"} >
               <option disabled selected value></option>
-            ` + optionstring + `
+            ` +
+          optionstring +
+          `
 
         </select>
         <br/>
@@ -300,13 +309,13 @@ const NewEntry = (props: INewEntry) => {
         <form onSubmit={onSubmit} id={FORM_ID}>
           {formHTML ? parse(formHTML) : null}
           <input type={"submit"} value="Submit"></input>
-        </form>     
+        </form>
       )}
-      {isCreating === true? 
-        (<div>
-            <Spinner size={SpinnerSize.large} />
-        </div>) : null
-        }
+      {isCreating === true ? (
+        <div>
+          <Spinner size={SpinnerSize.large} />
+        </div>
+      ) : null}
     </div>
   );
 };
