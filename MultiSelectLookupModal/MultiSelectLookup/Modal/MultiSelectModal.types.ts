@@ -15,7 +15,11 @@ export type IMultiSelectModal = {
     selection?:any;
     setPageNumber:Dispatch<SetStateAction<number>>;
     pageNumber:number;
-    error:boolean
+    error:boolean;
     setError:Dispatch<SetStateAction<boolean>>;
+    setPortalDataSet: Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
+    portalDataSet: ComponentFramework.WebApi.Entity[]|undefined
+    setPortalDataSize : Dispatch<SetStateAction<number|undefined>>;
+    portalDataSize: number|undefined;
 
 }

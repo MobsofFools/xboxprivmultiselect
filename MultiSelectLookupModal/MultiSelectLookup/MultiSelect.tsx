@@ -15,6 +15,8 @@ const MultiSelect = (props: IMultiSelect) => {
   useState<ComponentFramework.WebApi.Entity[]>();
   const [pageNumber, setPageNumber] = useState(1);
   const [error, setError] = useState(false);
+  const [portalDataSet, setPortalDataSet] = useState<ComponentFramework.WebApi.Entity[]>();
+  const [portalDataSize, setPortalDataSize] = useState<number>();
 
   useEffect(()=> {
     onChange(outputVariable);
@@ -35,6 +37,27 @@ const MultiSelect = (props: IMultiSelect) => {
       }),
     []
   );
+  const handleOnLoad = async () => {
+    if(window.location.href.includes("crm")){
+      const output = context?.parameters.outputVariable.raw!;
+      if(!output || (output && typeof output === "string" && output.length === 0) ){
+        const page = context as any;
+        if(page.page.entityId !== undefined)
+        {
+          const doubleCheck = await context?.webAPI.retrieveRecord(page.page.entityTypeName, page.page.entityId)
+          const fieldId: string = page.reporting["_controlId"].split(".")[0];
+          if(doubleCheck){
+            const json = doubleCheck[fieldId];
+            setOutputVariable(json);
+          }
+        }
+      }
+    }
+  }
+
+  useEffect(()=> {
+    handleOnLoad();
+  },[])
   if(context)
   {
     return (
@@ -49,6 +72,8 @@ const MultiSelect = (props: IMultiSelect) => {
           selection={selection}
           setPageNumber={setPageNumber}
           setError={setError}
+          setPortalDataSet={setPortalDataSet}
+          setPortalDataSize={setPortalDataSize}
           />
         <MultiSelectModal 
           setOutputVariable={setOutputVariable}
@@ -66,6 +91,10 @@ const MultiSelect = (props: IMultiSelect) => {
           setPageNumber={setPageNumber}
           error={error}
           setError={setError}
+          portalDataSet={portalDataSet}
+          setPortalDataSet={setPortalDataSet}
+          portalDataSize={portalDataSize}
+          setPortalDataSize={setPortalDataSize}
         />
       </>
     );

@@ -11,4 +11,10 @@ export type IMainDisplay = {
     selection?:any;
     setPageNumber:Dispatch<SetStateAction<number>>;
     setError:Dispatch<SetStateAction<boolean>>;
+    setPortalDataSet: Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
+    setPortalDataSize : Dispatch<SetStateAction<number|undefined>>;
+}
+export type RetrieveMultipleRecordsPortalResponse = {
+    value: ComponentFramework.WebApi.Entity[],
+    "@odata.count":number
 }

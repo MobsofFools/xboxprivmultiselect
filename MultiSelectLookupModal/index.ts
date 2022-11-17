@@ -86,6 +86,7 @@ export class MultiSelectLookupModal implements ComponentFramework.StandardContro
     public destroy(): void
     { 
         ReactDOM.unmountComponentAtNode(this.controlContainer);
+
         // Add code to cleanup control if necessary
     }
 }

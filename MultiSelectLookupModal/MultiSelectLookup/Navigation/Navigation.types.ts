@@ -10,6 +10,6 @@ export type INavigation = {
     context: ComponentFramework.Context<IInputs>
     fetchXMLPagingCookie?:string;
     getRequestedPage: (page:number)=> void;
-    windowDimensions: {width:number,height:number}
-
+    portalDataSize? :number;
+    isPortal?:boolean;
 }
