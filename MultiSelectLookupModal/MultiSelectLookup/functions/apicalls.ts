@@ -1,9 +1,10 @@
+import { IColumn } from "@fluentui/react";
 import { IInputs } from "../../generated/ManifestTypes";
 import { ORDER_BY } from "../constants";
 import { RetrieveMultipleRecordsPortalResponse } from "../MainDisplay/MainDisplay.types";
 
-const getFetchXML = (page:number, entityName:string, selectedColumns:string, pageLength:number, search?:string, orderby?:string, sortAsc?:string) => {
-    const desc = sortAsc === "false"? "true" : "false";
+const getFetchXML = (page:number, entityName:string, selectedColumns:string, pageLength:number, search?:string, orderby?:string, isSortedDescending?:string) => {
+    const desc = isSortedDescending === "false"? "false" : "true";
     const order = orderby || ORDER_BY
     let xml = `<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false" count="${pageLength}" page="${page}">`;
     xml += `<entity name="${entityName}">`
@@ -31,19 +32,67 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
     xml += `</entity></fetch>`
     return xml;
   }
+  const getSortedColumn = (columns:IColumn[]) => {
+    const sortedCol = columns.map((col:IColumn) => {
+      if(col.isSorted)
+      {
+        return col;
+      }
+    })
+    if(sortedCol)
+    {
+      console.log(sortedCol)
+      return sortedCol[0];
+    }
+    
+  }
 
-  export const getSearchPage = async(context:ComponentFramework.Context<IInputs> , page:number, search?:string) => {
+  export const getSearchPage = async(context:ComponentFramework.Context<IInputs> , page:number,  columns:IColumn[],search?:string) => {
     const entityName = context.parameters.entityName.raw!
     const selectedColumns = context.parameters.selectedColumns.raw!
     const pageLength = 50;
-    const xml = "?fetchXml="+getFetchXML(page,entityName,selectedColumns,pageLength,search);
+    const sorted = getSortedColumn(columns);
+    
+    const xml = "?fetchXml="+getFetchXML(page,entityName,selectedColumns,pageLength,search,sorted?.fieldName,sorted?.isSortedDescending?.toString());
     const data = await context.webAPI.retrieveMultipleRecords(
       entityName,
       xml
     )
     return data;
   }
+  export const getEntityFilterResults = async(context:ComponentFramework.Context<IInputs>,orderby:string, isSortedDescending?:boolean, query?:string)  => {
+    const entityName = context.parameters.entityName.raw!;
+    const selectedColumns = context.parameters.selectedColumns.raw!;
+    const pageLength = 50;
+    let queryString = `?$select=${selectedColumns}`;
+    const columnArray = selectedColumns.split(",");
+    const desc = isSortedDescending? "desc" : "asc";
+    const orderBy = `&$orderby=${orderby} ${desc}`
+    let searchString = `&$filter=`
+    columnArray.forEach((column,i)=> {
+     if(i=== 0) 
+     {
+      const concat = `contains(${column},'${query}')`
+      searchString += concat;
+     }
+     else {
+      const concat = ` or contains(${column},'${query}')`
+      searchString += concat;
+     }
+    })
+    if(typeof query === "string" && query.length>0)
+    {
+      queryString += searchString;
+    }
+    const data = await context.webAPI.retrieveMultipleRecords(
+      entityName,
+      queryString + orderBy,
+      pageLength
+    )
+    console.log(data);
+    return data;
 
+  }
   export const getEntitySearchResults = async(context:ComponentFramework.Context<IInputs>, query:string) => {
     const orderby = context.parameters.orderBy.raw! || ORDER_BY;
     const desc = context.parameters.sortAsc.raw! === "false"? "desc" : "asc";
@@ -76,7 +125,6 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
     const orderby = context.parameters.orderBy.raw! || ORDER_BY;
     const desc = context.parameters.sortAsc.raw! === "false"? "desc" : "asc";
     let entityName = context.parameters.entityName.raw!
-    const sortAsc = context.parameters.sortAsc.raw! || "false";
     const sortQuery = `&$orderby=${orderby} ${desc}`
     const selectedColumns = context.parameters.selectedColumns.raw!
     const pageLength = 50;

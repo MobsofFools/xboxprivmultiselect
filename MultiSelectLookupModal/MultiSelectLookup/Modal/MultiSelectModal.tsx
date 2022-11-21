@@ -1,4 +1,4 @@
-import { useState, useEffect, createRef } from "react";
+import React, { useState, useEffect, createRef } from "react";
 import { IIconProps } from "@fluentui/react/lib/Icon";
 import { Modal } from "@fluentui/react/lib/Modal";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
@@ -13,7 +13,7 @@ import {
 } from "@fluentui/react/lib/DetailsList";
 import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 import { Sticky, StickyPositionType } from "@fluentui/react/lib/Sticky";
-import { IRenderFunction, merge } from "@fluentui/react/lib/Utilities";
+import { IRenderFunction } from "@fluentui/react/lib/Utilities";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { IMultiSelectModal } from "./MultiSelectModal.types";
 import { useId } from "@fluentui/react-hooks";
@@ -27,6 +27,7 @@ import {
   getSearchPage,
   getPortalSearchResults,
   getPortalInitialResults,
+  getEntityFilterResults,
 } from "../functions/apicalls";
 import NewEntry from "../NewEntry/NewEntry";
 import {
@@ -35,6 +36,7 @@ import {
   ICON_COLOR,
   SELECT_BUTTON_FONT_COLOR,
 } from "../constants";
+import { Spinner, SpinnerSize } from "@fluentui/react";
 const MultiSelectModal = (props: IMultiSelectModal) => {
   const {
     isModalOpen,
@@ -56,6 +58,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     portalDataSize,
     setPortalDataSet,
     setPortalDataSize,
+    isLoading,
+    setIsLoading
   } = props;
 
   //#region State
@@ -66,6 +70,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const [search, setSearch] = useState<string>();
   const [isPanelOpen, setPanelOpen] = useState<boolean>(false);
   const [paneMargin, setPaneMargin] = useState<number>(150);
+
   const modalRef = createRef<HTMLDivElement>();
   const headerRef = createRef<HTMLDivElement>();
   const searchDivRef = createRef<HTMLDivElement>();
@@ -86,6 +91,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const enableNew = context?.parameters.enableNew?.raw! || false;
   const redirectForNew = context?.parameters.redirectForNew?.raw! || "true";
   const displayProperty = context?.parameters.displayedColumn.raw!;
+  const enableViewFilters = context?.parameters.enableViewFilters.raw!;
   const getRedirectURL = () => {
     const href = window.location.href;
     if (href.includes("powerappsportals")) {
@@ -109,6 +115,10 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         padding: 0,
         margin: 0,
       },
+      select: {
+        borderColor: "none",
+      }
+      ,
       ".ms-DetailsHeader-cellName": {
         fontSize: "12.75",
         fontFamily:
@@ -181,9 +191,10 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             name: columnsHeadersArray[i],
             fieldName: columnArray[i],
             minWidth: minWidth,
-            maxWidth: minWidth,
             isMultiline: true,
             isResizable: true,
+            flexGrow:1,
+            onColumnClick: _onColumnClick,
           };
           columns.push(tempColumn);
         }
@@ -191,7 +202,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     }
     return columns;
   };
-  const columns = getColumns();
+  const [columns, setColumns] = useState<IColumn[]>(getColumns());
+
   const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> = (
     props,
     defaultRender
@@ -224,6 +236,66 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       </div>
     );
   };
+  function _copyAndSort<T>(items: T[], columnKey: string, isSortedDescending?: boolean): T[] {
+    const key = columnKey as keyof T;
+    return items.slice(0).sort((a: T, b: T) => ((isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1));
+  }
+
+  const handleSetSortColumnData = async (fieldName: string, isSortedDescending?: boolean, prevSelection?:ComponentFramework.WebApi.Entity[]) => {
+    if (window.location.href.includes("powerappsportal")) {
+      if (portalDataSet) {
+        const newItems = _copyAndSort(portalDataSet, fieldName, isSortedDescending);
+        setPortalDataSet(newItems);
+        const slicedArray = newItems.slice(0, 50);
+        const merge = maintainSelectedEntityData(slicedArray, prevSelection);
+        setColumnData(merge);
+        setPageNumber(1);
+        if (prevSelection) {
+          const selectIndex = prevSelection.length;
+          selection.setRangeSelected(0, selectIndex, true, false);
+          let yaxis = selectIndex * 50;
+          document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
+        }
+        else {
+          document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
+        }
+      }
+    }
+    else {
+      const data = await getEntityFilterResults(context, fieldName, isSortedDescending, search);
+      setNextLink(data.nextLink);
+      setColumnData(maintainSelectedEntityData(data.entities, prevSelection))
+      if (prevSelection) {
+        const selectIndex = prevSelection.length;
+        selection.setRangeSelected(0, selectIndex, true, false);
+        let yaxis = selectIndex * 50;
+        document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
+      }
+      else {
+        document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
+      }
+    }
+    setPageNumber(1);
+  }
+
+  function _onColumnClick(ev: React.MouseEvent<HTMLElement, MouseEvent>, column: IColumn) {
+    const prevSelection = selectionArray;
+    console.log(prevSelection);
+    const newColumns: IColumn[] = columns.slice();
+    const currColumn: IColumn = newColumns.filter(currCol => column.key === currCol.key)[0]
+    newColumns.forEach((newCol: IColumn) => {
+      if (newCol === currColumn) {
+        currColumn.isSortedDescending = !currColumn.isSortedDescending;
+        currColumn.isSorted = true;
+
+      } else {
+        newCol.isSorted = false;
+        newCol.isSortedDescending = true;
+      }
+    });
+    setColumns(newColumns);
+    handleSetSortColumnData(currColumn.fieldName!, currColumn.isSortedDescending, prevSelection);
+  }
   //#endregion
 
   //#region Event Handlers
@@ -232,6 +304,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   };
 
   const handleOnSearchClick = async () => {
+    setIsLoading(true)
     const prevSelection = selectionArray;
     if (search) {
       const data = await getEntitySearchResults(context, search);
@@ -252,11 +325,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       selection.setRangeSelected(0, prevSelection.length, true, false);
     }
     setPageNumber(1);
+    setIsLoading(false)
     document
       .querySelector(".ms-ScrollablePane--contentContainer")
       ?.scrollTo(0, 0);
   };
   const handlePortalSearchClick = async () => {
+    setIsLoading(true)
     const prevSelection = selectionArray;
     if (search) {
       const data = await getPortalSearchResults(context, search);
@@ -269,7 +344,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       }
     } else {
       const data = await getPortalInitialResults(context);
-      
+
       if (data) {
         setPortalDataSet(data.value);
         const slicedArray = data.value.slice(0, 50);
@@ -277,12 +352,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         setColumnData(merge);
         setPortalDataSize(data["@odata.count"]);
       }
-      
+
     }
     if (prevSelection) {
       selection.setRangeSelected(0, prevSelection.length, true, false);
     }
     setPageNumber(1);
+    setIsLoading(false);
     document
       .querySelector(".ms-ScrollablePane--contentContainer")
       ?.scrollTo(0, 0);
@@ -293,34 +369,33 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     setSelectionArray([]);
   };
   const handleOnSelectClick = () => {
-    if(selectionArray && selectionArray.length > 0)
-    {
-      const outputJSON = JSON.stringify(selectionArray) 
+    if (selectionArray && selectionArray.length > 0) {
+      const outputJSON = JSON.stringify(selectionArray)
       setOutputVariable(outputJSON);
-      if(window.location.href.includes("portal")){
-        const array: string[] = [];    
+      if (window.location.href.includes("portal")) {
+        const array: string[] = [];
         selectionArray.forEach((item: any) => {
           array.push(item[displayProperty]);
         });
-      sessionStorage.setItem(`${entityName}selectedItems`,array.toString())
-      window.dispatchEvent(new Event("storage"));
-      } 
+        sessionStorage.setItem(`${entityName}selectedItems`, array.toString())
+        window.dispatchEvent(new Event("storage"));
+        setModalOpen(false);
+      }
     }
-    else{
+    else {
       setOutputVariable(undefined);
     }
-    setModalOpen(false);
-    setColumnData([]);
-    setSelectionArray([]);
+    // setColumnData([]);
+    // setSelectionArray([]);
   };
   const handleOnClearClick = () => {
     setOutputVariable(undefined);
     setSelectionArray([]);
     selection.setAllSelected(false);
-    if(window.location.href.includes("portal")){
-    sessionStorage.removeItem(`${entityName}selectedItems`)
-    window.dispatchEvent(new Event("storage"));
-    } 
+    if (window.location.href.includes("portal")) {
+      sessionStorage.removeItem(`${entityName}selectedItems`)
+      window.dispatchEvent(new Event("storage"));
+    }
   };
   const handleOnNewClick = () => {
     setPanelOpen(true);
@@ -330,46 +405,47 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   };
   //#endregion
   const getRequestedPage = async (page: number) => {
+    setIsLoading(true)
     const prevSelection = selectionArray;
-    const data = await getSearchPage(context, page, search);
+    const data = await getSearchPage(context, page, columns, search);
     const any = data as any;
     setNextLink(data.nextLink);
     setColumnData(maintainSelectedEntityData(data.entities, prevSelection));
     if (prevSelection) {
       const selectIndex = prevSelection.length;
       selection.setRangeSelected(0, selectIndex, true, false);
-      let yaxis = selectIndex*50;
+      let yaxis = selectIndex * 50;
       document
-      .querySelector(".ms-ScrollablePane--contentContainer")
-      ?.scrollTo(0, yaxis);
+        .querySelector(".ms-ScrollablePane--contentContainer")
+        ?.scrollTo(0, yaxis);
     }
     else {
       document
-      .querySelector(".ms-ScrollablePane--contentContainer")
-      ?.scrollTo(0, 0);
-    }
-    setFetchXMLPagingCookie(any.fetchXmlPagingCookie);
-  };
-  const getPortalRequestedPage = async(page:number) => {
-    const prevSelection = selectionArray;
-    if(portalDataSet)
-    {
-      const slicedArray = portalDataSet.slice((page - 1)*50 , (page*50))
-      setColumnData(maintainSelectedEntityData(slicedArray, prevSelection));
-      if(prevSelection){
-      const selectIndex = prevSelection.length;
-      let yaxis = selectIndex*50;
-      setTimeout(()=> {
-        selection.setRangeSelected(0, selectIndex, true, false);
-      },100)
-      document
-      .querySelector(".ms-ScrollablePane--contentContainer")
-      ?.scrollTo(0, yaxis);
-      }
-      else{
-        document
         .querySelector(".ms-ScrollablePane--contentContainer")
         ?.scrollTo(0, 0);
+    }
+    setFetchXMLPagingCookie(any.fetchXmlPagingCookie);
+    setIsLoading(false);
+  };
+  const getPortalRequestedPage = async (page: number) => {
+    const prevSelection = selectionArray;
+    if (portalDataSet) {
+      const slicedArray = portalDataSet.slice((page - 1) * 50, (page * 50))
+      setColumnData(maintainSelectedEntityData(slicedArray, prevSelection));
+      if (prevSelection) {
+        const selectIndex = prevSelection.length;
+        let yaxis = selectIndex * 50;
+        setTimeout(() => {
+          selection.setRangeSelected(0, selectIndex, true, false);
+        }, 100)
+        document
+          .querySelector(".ms-ScrollablePane--contentContainer")
+          ?.scrollTo(0, yaxis);
+      }
+      else {
+        document
+          .querySelector(".ms-ScrollablePane--contentContainer")
+          ?.scrollTo(0, 0);
       }
     }
   }
@@ -385,6 +461,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(()=> {
+    console.log(selectionArray)
+  },[selectionArray])
   //#endregion
   useEffect(() => {
     if (blurbDivRef.current)
@@ -483,38 +562,45 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                 width: "100%",
               }}
             >
-              <ScrollablePane
-                style={{
-                  height: "inherit",
-                  paddingTop: 0,
-                  marginTop: paneMargin,
-                  marginBottom: "70px",
-                  width: "inherit",
-                  display: "block",
-                }}
-                id={"multiselectmodalScrollablePaneId"}
-              >
-                <DetailsList
-                  items={columnData}
-                  columns={columns}
-                  isHeaderVisible={true}
-                  onRenderDetailsHeader={onRenderDetailsHeader}
-                  checkboxVisibility={CheckboxVisibility.always}
-                  selection={selection}
-                  selectionMode={SelectionMode.multiple}
-                  selectionPreservedOnEmptyClick={true}
-                  enterModalSelectionOnTouch={true}
-                  ariaLabelForSelectionColumn="Toggle selection"
-                  ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                  checkButtonAriaLabel="select row"
-                  onRenderRow={onRenderRow}
-                  styles={{
-                    root: {
-                      overflowX:"hidden"
-                    }
+              {isLoading === true ?
+                <div style={{ height: listHeight, display: "grid", justifyContent: "center", alignItems: "center", width: "80%", margin: "auto" }}>
+                  <Spinner size={SpinnerSize.large} />
+                </div>
+                :
+                <ScrollablePane
+                  style={{
+                    height: "inherit",
+                    paddingTop: 0,
+                    marginTop: paneMargin,
+                    marginBottom: "70px",
+                    width: "inherit",
+                    display: "block",
                   }}
-                />
-              </ScrollablePane>
+                  id={"multiselectmodalScrollablePaneId"}
+                >
+                  <DetailsList
+                    items={columnData}
+                    columns={columns}
+                    isHeaderVisible={true}
+                    onRenderDetailsHeader={onRenderDetailsHeader}
+                    checkboxVisibility={CheckboxVisibility.always}
+                    selection={selection}
+                    selectionMode={SelectionMode.multiple}
+                    selectionPreservedOnEmptyClick={true}
+                    enterModalSelectionOnTouch={true}
+                    ariaLabelForSelectionColumn="Toggle selection"
+                    ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                    checkButtonAriaLabel="select row"
+                    onRenderRow={onRenderRow}
+                    styles={{
+                      root: {
+                        overflowX: "hidden"
+                      }
+                    }}
+                  />
+                </ScrollablePane>
+              }
+
             </div>
             <div
               style={{
@@ -648,47 +734,59 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               iconProps={CancelIcon}
             />
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              borderBottom: "1px solid #e5e5e5",
-              paddingTop: "15px",
-              marginBottom: "9px",
-              paddingBottom: "9px",
-            }}
-            ref={searchDivRef}
-          >
-            <input
+          <div style={{
+            display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e5e5e5",
+            paddingTop: "15px",
+            marginBottom: "9px",
+            paddingBottom: "9px",
+          }}>
+            {typeof enableViewFilters === "string" && enableViewFilters.length > 0 ?
+              <select style={{ marginLeft: "8px" }}>
+                <option value={"a"}>My Active Records</option>
+              </select>
+              : <div></div>
+            }
+
+
+            <div
               style={{
-                border: "1px solid rgb(216,216,216)",
-                height: "35px",
-                padding: "0 2px",
-                boxSizing: "border-box",
+                display: "flex",
+                justifyContent: "flex-end",
+
               }}
-              placeholder={"Search"}
-              onChange={onSearchChange}
-            ></input>
-            <TooltipHost
-              id={useId("searchtooltip")}
-              setAriaDescribedBy={false}
-              content="Search"
+              ref={searchDivRef}
             >
-              <IconButton
-                iconProps={SearchIcon}
-                ariaLabel="Search"
-                onClick={handleOnSearchClick}
+              <input
                 style={{
-                  border: `1px solid ${iconColor}`,
-                  background: buttonColor,
-                  color: iconColor,
+                  border: "1px solid rgb(216,216,216)",
                   height: "35px",
-                  width: "35px",
-                  borderRadius: "0px",
-                  marginRight: "8px",
+                  padding: "0 2px",
+                  boxSizing: "border-box",
                 }}
-              />
-            </TooltipHost>
+                placeholder={"Search"}
+                onChange={onSearchChange}
+              ></input>
+              <TooltipHost
+                id={useId("searchtooltip")}
+                setAriaDescribedBy={false}
+                content="Search"
+              >
+                <IconButton
+                  iconProps={SearchIcon}
+                  ariaLabel="Search"
+                  onClick={handleOnSearchClick}
+                  style={{
+                    border: `1px solid ${iconColor}`,
+                    background: buttonColor,
+                    color: iconColor,
+                    height: "35px",
+                    width: "35px",
+                    borderRadius: "0px",
+                    marginRight: "8px",
+                  }}
+                />
+              </TooltipHost>
+            </div>
           </div>
           <div
             style={{ fontSize: "12.75px", padding: "0px 15px" }}
@@ -704,33 +802,40 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               width: "100%",
             }}
           >
-            <ScrollablePane
-              style={{
-                height: "inherit",
-                paddingTop: 0,
-                marginTop: paneMargin,
-                marginBottom: "70px",
-                width: "inherit",
-                display: "block",
-              }}
-              id={"multiselectmodalScrollablePaneId"}
-            >
-              <DetailsList
-                items={columnData}
-                columns={columns}
-                isHeaderVisible={true}
-                onRenderDetailsHeader={onRenderDetailsHeader}
-                checkboxVisibility={CheckboxVisibility.always}
-                selection={selection}
-                selectionMode={SelectionMode.multiple}
-                selectionPreservedOnEmptyClick={true}
-                enterModalSelectionOnTouch={true}
-                ariaLabelForSelectionColumn="Toggle selection"
-                ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                checkButtonAriaLabel="select row"
-                onRenderRow={onRenderRow}
-              />
-            </ScrollablePane>
+            {isLoading === true ?
+              <div style={{ height: listHeight, display: "grid", justifyContent: "center", alignItems: "center", width: "80%", margin: "auto" }}>
+                <Spinner size={SpinnerSize.large} />
+              </div>
+              :
+              <ScrollablePane
+                style={{
+                  height: "inherit",
+                  paddingTop: 0,
+                  marginTop: paneMargin,
+                  marginBottom: "70px",
+                  width: "inherit",
+                  display: "block",
+                }}
+                id={"multiselectmodalScrollablePaneId"}
+              >
+                <DetailsList
+                  items={columnData}
+                  columns={columns}
+                  isHeaderVisible={true}
+                  onRenderDetailsHeader={onRenderDetailsHeader}
+                  checkboxVisibility={CheckboxVisibility.always}
+                  selection={selection}
+                  selectionMode={SelectionMode.multiple}
+                  selectionPreservedOnEmptyClick={true}
+                  enterModalSelectionOnTouch={true}
+                  ariaLabelForSelectionColumn="Toggle selection"
+                  ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                  checkButtonAriaLabel="select row"
+                  onRenderRow={onRenderRow}
+                />
+              </ScrollablePane>
+            }
+
           </div>
           <div
             style={{

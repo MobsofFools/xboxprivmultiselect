@@ -29,7 +29,8 @@
     <property name="selectButtonFontColor" display-name-key="Select Button Font Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=white" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="orderBy" display-name-key="orderBy" description-key="Order By string, by logical name of field, eg: title" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="sortAsc" display-name-key="sortAsc" description-key="Sort Ascending. leave empty for descending" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="enableNew" display-name-key="Enable New" description-key="true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="enableViewFilters" display-name-key="Enable View Filters" description-key="true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="enableNew" display-name-key="Enable New" description-key="Functionality not supported at this moment, true or false: default false" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="redirectForNew" display-name-key="Redirect for New" description-key="true or false: default true" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="newPortalRedirectURL" display-name-key="newPortalRedirectURL" description-key="url of new entry on portal" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="newCRMRedirectURL" display-name-key="newCRMRedirectURL" description-key="url of new entry on crm" of-type="SingleLine.Text" usage="input" required="false" />

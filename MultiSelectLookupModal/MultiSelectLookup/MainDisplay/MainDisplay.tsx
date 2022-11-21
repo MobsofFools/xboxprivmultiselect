@@ -24,6 +24,7 @@ const MainDisplay = (props: IMainDisplay) => {
     setError,
     setPortalDataSet,
     setPortalDataSize,
+    setIsLoading
   } = props;
 
   const entityName = context.parameters.entityName.raw!;
@@ -32,6 +33,7 @@ const MainDisplay = (props: IMainDisplay) => {
   const iconColor = context.parameters.iconColor.raw! || ICON_COLOR;
   const onButtonClick = async () => {
     setModalOpen(true);
+    setIsLoading(true);
     if (window.location.href.includes("portal")) {
       const data = (await getPortalInitialResults(
         context
@@ -48,6 +50,7 @@ const MainDisplay = (props: IMainDisplay) => {
             const merge = maintainSelectedEntityData(slicedData, json);
 
             setColumnData(merge);
+            setIsLoading(false);
             selection.setRangeSelected(0, json.length, true, false);
           } else {
             setColumnData(slicedData);
@@ -57,6 +60,7 @@ const MainDisplay = (props: IMainDisplay) => {
         }
         setPageNumber(1);
       }
+      
     } else {
       const data = await getEntityInitialResults(context).catch((error) =>
         setError(true)
@@ -70,6 +74,7 @@ const MainDisplay = (props: IMainDisplay) => {
             const merge = maintainSelectedEntityData(data.entities, json);
             setColumnData(merge);
             setPageNumber(1);
+            setIsLoading(false);
             selection.setRangeSelected(0, json.length, true, false);
           }
         } else {
@@ -78,6 +83,7 @@ const MainDisplay = (props: IMainDisplay) => {
         setNextLink(data.nextLink);
       }
     }
+    
   };
   function isJsonString(str: string) {
     try {

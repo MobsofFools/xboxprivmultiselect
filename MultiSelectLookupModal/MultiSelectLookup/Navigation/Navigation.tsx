@@ -16,6 +16,7 @@ const Navigation = (props: INavigation) => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      cursor:"pointer",
     },
     currentNavNumber: {
       height: "32px",
@@ -29,13 +30,17 @@ const Navigation = (props: INavigation) => {
     },
   });
 
-  const handleBackPage = async() => {
+  const handleBackPage = () => {
     getRequestedPage(lastPage)
     setPageNumber(pageNumber-1)
   }
   const handleForwardPage = () => {
     getRequestedPage(nextPage)
     setPageNumber(pageNumber+1)
+  }
+  const handleNumberButtonClick = (pagenum:number) => {
+    getRequestedPage(pagenum);
+    setPageNumber(pagenum);
   }
 if(isPortal){
   if(portalDataSize){
@@ -48,7 +53,7 @@ if(isPortal){
             iconProps={ChevronLeft}
             onClick={handleBackPage}
           />
-          <div className={classNames.navigationNumber}>{lastPage}</div>
+          <div className={classNames.navigationNumber} onClick={()=>handleNumberButtonClick(lastPage)}>{lastPage}</div>
         </>
       ) : (
         <>
@@ -59,7 +64,7 @@ if(isPortal){
       <div className={classNames.currentNavNumber}>{pageNumber}</div>
       {numberofPages > pageNumber? (
         <>
-          <div className={classNames.navigationNumber}>{nextPage}</div>
+          <div className={classNames.navigationNumber} onClick={()=>handleNumberButtonClick(nextPage)}>{nextPage}</div>
           <IconButton
             iconProps={ChevronRight}
             onClick={handleForwardPage}
@@ -83,7 +88,7 @@ if(isPortal){
             iconProps={ChevronLeft}
             onClick={handleBackPage}
           />
-          <div className={classNames.navigationNumber}>{lastPage}</div>
+          <div className={classNames.navigationNumber} onClick={()=>handleNumberButtonClick(lastPage)}>{lastPage}</div>
         </>
       ) : (
         <>
@@ -94,7 +99,7 @@ if(isPortal){
       <div className={classNames.currentNavNumber}>{pageNumber}</div>
       {nextLink || fetchXMLPagingCookie ? (
         <>
-          <div className={classNames.navigationNumber}>{nextPage}</div>
+          <div className={classNames.navigationNumber} onClick={()=>handleNumberButtonClick(nextPage)}>{nextPage}</div>
           <IconButton
             iconProps={ChevronRight}
             onClick={handleForwardPage}

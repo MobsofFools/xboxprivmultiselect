@@ -17,6 +17,7 @@ const MultiSelect = (props: IMultiSelect) => {
   const [error, setError] = useState(false);
   const [portalDataSet, setPortalDataSet] = useState<ComponentFramework.WebApi.Entity[]>();
   const [portalDataSize, setPortalDataSize] = useState<number>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(()=> {
     onChange(outputVariable);
@@ -57,6 +58,7 @@ const MultiSelect = (props: IMultiSelect) => {
 
   useEffect(()=> {
     handleOnLoad();
+    console.log("update 2")
   },[])
   if(context)
   {
@@ -74,6 +76,7 @@ const MultiSelect = (props: IMultiSelect) => {
           setError={setError}
           setPortalDataSet={setPortalDataSet}
           setPortalDataSize={setPortalDataSize}
+          setIsLoading={setIsLoading}
           />
         <MultiSelectModal 
           setOutputVariable={setOutputVariable}
@@ -95,6 +98,8 @@ const MultiSelect = (props: IMultiSelect) => {
           setPortalDataSet={setPortalDataSet}
           portalDataSize={portalDataSize}
           setPortalDataSize={setPortalDataSize}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
         />
       </>
     );

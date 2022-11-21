@@ -13,6 +13,7 @@ export type IMainDisplay = {
     setError:Dispatch<SetStateAction<boolean>>;
     setPortalDataSet: Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
     setPortalDataSize : Dispatch<SetStateAction<number|undefined>>;
+    setIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 export type RetrieveMultipleRecordsPortalResponse = {
     value: ComponentFramework.WebApi.Entity[],

@@ -21,5 +21,7 @@ export type IMultiSelectModal = {
     portalDataSet: ComponentFramework.WebApi.Entity[]|undefined
     setPortalDataSize : Dispatch<SetStateAction<number|undefined>>;
     portalDataSize: number|undefined;
+    isLoading:boolean;
+    setIsLoading:Dispatch<SetStateAction<boolean>>;
 
 }
