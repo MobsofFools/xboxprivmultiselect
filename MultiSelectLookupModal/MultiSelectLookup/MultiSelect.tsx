@@ -3,6 +3,7 @@ import MainDisplay from "./MainDisplay/MainDisplay";
 import MultiSelectModal from "./Modal/MultiSelectModal";
 import { IMultiSelect } from "./MultiSelect.types";
 import { Selection,SelectionMode } from "@fluentui/react/lib/DetailsList";
+import { maintainSelectedEntityData } from "./functions/apicalls";
 
 
 const MultiSelect = (props: IMultiSelect) => {
@@ -32,7 +33,7 @@ const MultiSelect = (props: IMultiSelect) => {
               selection.getSelection()[i] as ComponentFramework.WebApi.Entity[]
             );
           }          
-          setSelectionArray(array);
+          setSelectionArray((prev)=> maintainSelectedEntityData(array,prev));
         },
         selectionMode: SelectionMode.multiple,
       }),
@@ -58,7 +59,6 @@ const MultiSelect = (props: IMultiSelect) => {
 
   useEffect(()=> {
     handleOnLoad();
-    console.log("update 2")
   },[])
   if(context)
   {
@@ -77,6 +77,7 @@ const MultiSelect = (props: IMultiSelect) => {
           setPortalDataSet={setPortalDataSet}
           setPortalDataSize={setPortalDataSize}
           setIsLoading={setIsLoading}
+          setSelectionArray={setSelectionArray}
           />
         <MultiSelectModal 
           setOutputVariable={setOutputVariable}
