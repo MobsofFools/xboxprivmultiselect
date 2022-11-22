@@ -3,8 +3,23 @@ import { IInputs } from "../../generated/ManifestTypes";
 import { ORDER_BY } from "../constants";
 import { RetrieveMultipleRecordsPortalResponse } from "../MainDisplay/MainDisplay.types";
 
-const getFetchXML = (page:number, entityName:string, selectedColumns:string, pageLength:number, search?:string, orderby?:string, isSortedDescending?:string) => {
-    const desc = isSortedDescending === "false"? "false" : "true";
+const getFetchXML = (page:number, entityName:string, selectedColumns:string, pageLength:number, search?:string, orderby?:string, sortAsc?:string,isSortedDescending?:string) => {
+    let desc;
+    if(isSortedDescending){
+      desc = isSortedDescending;
+    }
+    else if(sortAsc){
+      if(sortAsc === "desc")
+      {
+        desc = "true";
+      }
+      else{
+        desc = "false";
+      }
+    }
+    else {
+      desc = "true"
+    }
     const order = orderby || ORDER_BY
     let xml = `<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false" count="${pageLength}" page="${page}">`;
     xml += `<entity name="${entityName}">`
@@ -33,27 +48,20 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
     return xml;
   }
   const getSortedColumn = (columns:IColumn[]) => {
-    const sortedCol = columns.map((col:IColumn) => {
-      if(col.isSorted)
-      {
-        return col;
-      }
-    })
-    if(sortedCol)
-    {
-      console.log(sortedCol)
-      return sortedCol[0];
-    }
+    const sortedCol = columns.filter((col)=> col.isSorted === true);
+    return sortedCol[0];
     
   }
 
   export const getSearchPage = async(context:ComponentFramework.Context<IInputs> , page:number,  columns:IColumn[],search?:string) => {
-    const entityName = context.parameters.entityName.raw!
-    const selectedColumns = context.parameters.selectedColumns.raw!
+    const entityName = context.parameters.entityName.raw!;
+    const selectedColumns = context.parameters.selectedColumns.raw!;
+    const sortAsc = context.parameters.sortAsc.raw! === ""||undefined? "desc" : "asc";
+    const oDataFilter = context.parameters.oDataFilter.raw!;
     const pageLength = 50;
     const sorted = getSortedColumn(columns);
-    
-    const xml = "?fetchXml="+getFetchXML(page,entityName,selectedColumns,pageLength,search,sorted?.fieldName,sorted?.isSortedDescending?.toString());
+    console.log(sorted);
+    const xml = "?fetchXml="+getFetchXML(page,entityName,selectedColumns,pageLength,search,sorted?.fieldName,sortAsc,sorted?.isSortedDescending?.toString());
     const data = await context.webAPI.retrieveMultipleRecords(
       entityName,
       xml
@@ -95,7 +103,7 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
   }
   export const getEntitySearchResults = async(context:ComponentFramework.Context<IInputs>, query:string) => {
     const orderby = context.parameters.orderBy.raw! || ORDER_BY;
-    const desc = context.parameters.sortAsc.raw! === "false"? "desc" : "asc";
+    const desc = context.parameters.sortAsc.raw! === ""||undefined? "desc" : "asc";
     const entityName = context.parameters.entityName.raw!;
     const selectedColumns = context.parameters.selectedColumns.raw!;
     const pageLength = 50;
@@ -164,16 +172,16 @@ export const getEntityAfterCreate = async (context:ComponentFramework.Context<II
   export const getPortalInitialResults = async (context:ComponentFramework.Context<IInputs>) => {
     const orderby = context.parameters.orderBy.raw! || ORDER_BY;
     const desc = context.parameters.sortAsc.raw! === "false"? "desc" : "asc";
-    const boundFilter = context.parameters.boundFilter.raw! || undefined; 
-    const boundFilterFieldName = context.parameters.boundFilterFieldName.raw! || undefined; 
+    // const boundFilter = context.parameters.boundFilter.raw! || undefined; 
+    // const boundFilterFieldName = context.parameters.boundFilterFieldName.raw! || undefined; 
     let entityName = context.parameters.entityName.raw!
     const sortQuery = `&$orderby=${orderby} ${desc}`
     const selectedColumns = context.parameters.selectedColumns.raw!; 
     let queryString = `?$select=${selectedColumns}`+ sortQuery +`&$count=true`
     let filterString = ``;
-    if(boundFilter && boundFilterFieldName){
-      filterString += `&$filter=${boundFilterFieldName} eq ${boundFilter} `
-    }
+    // if(boundFilter && boundFilterFieldName){
+    //   filterString += `&$filter=${boundFilterFieldName} eq ${boundFilter} `
+    // }
     const href = window.location.origin;
     const portalUrl = href + "/_api/"
     const fetchurl = portalUrl+entityName+"s"+queryString+filterString;
@@ -182,8 +190,8 @@ export const getEntityAfterCreate = async (context:ComponentFramework.Context<II
   }
   export const getPortalSearchResults = async(context:ComponentFramework.Context<IInputs>, query:string) => {
     const orderby = context.parameters.orderBy.raw! || ORDER_BY;
-    const boundFilter = context.parameters.boundFilter.raw! || undefined; 
-    const boundFilterFieldName = context.parameters.boundFilterFieldName.raw! || undefined; 
+    // const boundFilter = context.parameters.boundFilter.raw! || undefined; 
+    // const boundFilterFieldName = context.parameters.boundFilterFieldName.raw! || undefined; 
     const desc = context.parameters.sortAsc.raw! === "false"? "desc" : "asc";
     const entityName = context.parameters.entityName.raw!
     const selectedColumns = context.parameters.selectedColumns.raw!
@@ -203,13 +211,14 @@ export const getEntityAfterCreate = async (context:ComponentFramework.Context<II
       searchString += concat;
      }
     })
-    if(boundFilter && boundFilterFieldName){
-      filterString += `${boundFilterFieldName} eq ${boundFilter} `
-      filterString += `and ( ${searchString} )`
-    }
-    else {
-      filterString += searchString;
-    }
+    // if(boundFilter && boundFilterFieldName){
+    //   filterString += `${boundFilterFieldName} eq ${boundFilter} `
+    //   filterString += `and ( ${searchString} )`
+    // }
+    // else {
+    //   
+    // }
+    filterString += searchString;
     const href = window.location.origin;
     const portalUrl = href + "/_api/"
     const fetchurl = portalUrl+entityName+"s"+queryString+filterString+`&$orderby=${orderby} ${desc}&$count=true`
