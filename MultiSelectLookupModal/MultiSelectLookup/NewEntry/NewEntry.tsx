@@ -73,64 +73,64 @@ const NewEntry = (props: INewEntry) => {
     }
   };
 
-  const getEntityMetaData = async () => {
-    const any = context as any;
-    const page = any.page;
-    const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
+  // const getEntityMetaData = async () => {
+  //   const any = context as any;
+  //   const page = any.page;
+  //   const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
     
-    const data = (await (
-      await fetch(
-        crmURI +
-          `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
-            .entityName.raw!}')/Attributes`
-      )
-    ).json()) as IMetadataResponse;
-    const metadataArray = data.value;
-    const filteredArray = metadataArray.filter(
-      (item) =>
-        (item.IsRequiredForForm === true ||
-          item.RequiredLevel.Value === "Recommended" ||
-          item.RequiredLevel.Value === "ApplicationRequired") &&
-        item.IsValidForForm === true
-    ) as ISimplifiedMetadata[]; // || (item.RequiredLevel.Value !== "None" && item.IsPrimaryId === false)
-    // filteredArray.forEach((item)=> {
-    //     console.log(item.AttributeType,item.IsPrimaryId,item.LogicalName,item.RequiredLevel.Value, item.Description, item.DisplayName);
-    // })
-    const numberSortedArray = filteredArray.sort(
-      (a, b) => a.ColumnNumber - b.ColumnNumber
-    );
-    return numberSortedArray;
-  };
-  const getPickListMetadata = async (id: string) => {
-    const any = context as any;
-    const page = any.page;
-    const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
-    const data = (await (
-      await fetch(
-        crmURI +
-          `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
-            .entityName
-            .raw!}')/Attributes(LogicalName='${id}')/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$select=LogicalName&$expand=GlobalOptionSet($select=Options)`
-      )
-    ).json()) as IPickListMetadata;
-    const picklist = data.GlobalOptionSet.Options.map((item) => {
-      return { Value: item.Value, Label: item.Label.UserLocalizedLabel.Label };
-    });
-    console.log(picklist);
-    return picklist;
-  };
-  const createFormHTML = async () => {
-    setIsLoading(true);
-    const fieldMetadata = await getEntityMetaData();
-    let htmlArray = await Promise.all(
-      fieldMetadata.map(async (field) => {
-        return await getFieldType(field);
-      })
-    );
-    const array = htmlArray.filter((item) => item !== "");
-    setFormData(array);
-    setIsLoading(false);
-  };
+  //   const data = (await (
+  //     await fetch(
+  //       crmURI +
+  //         `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
+  //           .entityName.raw!}')/Attributes`
+  //     )
+  //   ).json()) as IMetadataResponse;
+  //   const metadataArray = data.value;
+  //   const filteredArray = metadataArray.filter(
+  //     (item) =>
+  //       (item.IsRequiredForForm === true ||
+  //         item.RequiredLevel.Value === "Recommended" ||
+  //         item.RequiredLevel.Value === "ApplicationRequired") &&
+  //       item.IsValidForForm === true
+  //   ) as ISimplifiedMetadata[]; // || (item.RequiredLevel.Value !== "None" && item.IsPrimaryId === false)
+  //   // filteredArray.forEach((item)=> {
+  //   //     console.log(item.AttributeType,item.IsPrimaryId,item.LogicalName,item.RequiredLevel.Value, item.Description, item.DisplayName);
+  //   // })
+  //   const numberSortedArray = filteredArray.sort(
+  //     (a, b) => a.ColumnNumber - b.ColumnNumber
+  //   );
+  //   return numberSortedArray;
+  // };
+  // const getPickListMetadata = async (id: string) => {
+  //   const any = context as any;
+  //   const page = any.page;
+  //   const crmURI = context.parameters.crmURI.raw! || page.getClientUrl();
+  //   const data = (await (
+  //     await fetch(
+  //       crmURI +
+  //         `/api/data/v9.2/EntityDefinitions(LogicalName='${context.parameters
+  //           .entityName
+  //           .raw!}')/Attributes(LogicalName='${id}')/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$select=LogicalName&$expand=GlobalOptionSet($select=Options)`
+  //     )
+  //   ).json()) as IPickListMetadata;
+  //   const picklist = data.GlobalOptionSet.Options.map((item) => {
+  //     return { Value: item.Value, Label: item.Label.UserLocalizedLabel.Label };
+  //   });
+  //   console.log(picklist);
+  //   return picklist;
+  // };
+  // const createFormHTML = async () => {
+  //   setIsLoading(true);
+  //   const fieldMetadata = await getEntityMetaData();
+  //   let htmlArray = await Promise.all(
+  //     fieldMetadata.map(async (field) => {
+  //       return await getFieldType(field);
+  //     })
+  //   );
+  //   const array = htmlArray.filter((item) => item !== "");
+  //   setFormData(array);
+  //   setIsLoading(false);
+  // };
   const getFieldType = async (field: ISimplifiedMetadata) => {
     const TypeName = field.AttributeTypeName.Value;
     const FieldType = field.AttributeType;
@@ -227,11 +227,11 @@ const NewEntry = (props: INewEntry) => {
       case "PartyList":
         break;
       case "Picklist":
-        const data = await getPickListMetadata(field.LogicalName);
-        const optionArray = data.map((item) => {
-          return `<option value="${item.Value}">${item.Label}</option>`;
-        });
-        const optionstring = optionArray.join("");
+        // const data = await getPickListMetadata(field.LogicalName);
+        // const optionArray = data.map((item) => {
+        //   return `<option value="${item.Value}">${item.Label}</option>`;
+        // });
+        // const optionstring = optionArray.join("");
         string =
           `<label htmlFor=${field.LogicalName}>${
             field.DisplayName.UserLocalizedLabel?.Label || field.LogicalName
@@ -240,7 +240,7 @@ const NewEntry = (props: INewEntry) => {
             <select name=${field.LogicalName} id=${field.LogicalName + "id"} >
               <option disabled selected value></option>
             ` +
-          optionstring +
+          //optionstring +
           `
 
         </select>
@@ -288,9 +288,9 @@ const NewEntry = (props: INewEntry) => {
     }
     return string;
   };
-  useEffect(() => {
-    createFormHTML();
-  }, []);
+  // useEffect(() => {
+  //   createFormHTML();
+  // }, []);
   useEffect(() => {
     const string = formData.join("");
     setFormHTML(string);
