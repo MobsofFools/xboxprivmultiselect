@@ -13,7 +13,7 @@ import {
 } from "@fluentui/react/lib/DetailsList";
 import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 import { Sticky, StickyPositionType } from "@fluentui/react/lib/Sticky";
-import { IRenderFunction } from "@fluentui/react/lib/Utilities";
+import { getId, IRenderFunction } from "@fluentui/react/lib/Utilities";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { IMultiSelectModal } from "./MultiSelectModal.types";
 import { useId } from "@fluentui/react-hooks";
@@ -37,6 +37,7 @@ import {
   SELECT_BUTTON_FONT_COLOR,
 } from "../constants";
 import { Spinner, SpinnerSize } from "@fluentui/react";
+import EntitySelector from "./EntitySelector";
 const MultiSelectModal = (props: IMultiSelectModal) => {
   const {
     isModalOpen,
@@ -88,21 +89,21 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const selectedColumns = context?.parameters.selectedColumns.raw!;
   const selectedColumnsHeaders =
     context?.parameters.selectedColumnsHeaders.raw!;
-  const enableNew = context?.parameters.enableNew?.raw! || false;
-  const redirectForNew = context?.parameters.redirectForNew?.raw! || "true";
+  // const enableNew = context?.parameters.enableNew?.raw! || false;
+  // const redirectForNew = context?.parameters.redirectForNew?.raw! || "true";
   const displayProperty = context?.parameters.displayedColumn.raw!;
-  const enableViewFilters = context?.parameters.enableViewFilters.raw!;
-  const getRedirectURL = () => {
-    const href = window.location.href;
-    if (href.includes("powerappsportals")) {
-      return context?.parameters.newPortalRedirectURL.raw!;
-    }
-    if (href.includes("crm")) {
-      return context?.parameters.newCRMRedirectURL.raw!;
-    }
-    return "";
-  };
-  const redirectURL = getRedirectURL();
+  // const enableViewFilters = context?.parameters.enableViewFilters.raw!;
+  // const getRedirectURL = () => {
+  //   const href = window.location.href;
+  //   if (href.includes("powerappsportals")) {
+  //     return context?.parameters.newPortalRedirectURL.raw!;
+  //   }
+  //   if (href.includes("crm")) {
+  //     return context?.parameters.newCRMRedirectURL.raw!;
+  //   }
+  //   return "";
+  // };
+  // const redirectURL = getRedirectURL();
   const classNames = mergeStyleSets({
     modalClass: {
       "span[role=checkbox]": {
@@ -153,7 +154,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
 
   const getListHeight = () => {
     if (modalRef.current) {
-      return modalRef.current.clientHeight - paneMargin - 60;
+      return modalRef.current.clientHeight - paneMargin - 60 - 50;
     }
   };
   const listHeight = getListHeight();
@@ -184,16 +185,16 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         columnArray.length === columnsHeadersArray.length &&
         columnArray.length > 0
       ) {
-        let minWidth = 100;
+        let minWidth = 125;
         for (let i = 0; i < columnArray.length; i++) {
           const tempColumn: IColumn = {
             key: useId(columnArray[i]),
             name: columnsHeadersArray[i],
             fieldName: columnArray[i],
             minWidth: minWidth,
+            maxWidth: minWidth,
             isMultiline: true,
             isResizable: true,
-            flexGrow:1,
             onColumnClick: _onColumnClick,
           };
           columns.push(tempColumn);
@@ -203,7 +204,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     return columns;
   };
   const [columns, setColumns] = useState<IColumn[]>(getColumns());
-
+  function _getKey(item:any, index?: number) : string {
+    return item.key;
+  }
   const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> = (
     props,
     defaultRender
@@ -247,40 +250,41 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         const newItems = _copyAndSort(portalDataSet, fieldName, isSortedDescending);
         setPortalDataSet(newItems);
         const slicedArray = newItems.slice(0, 50);
-        const merge = maintainSelectedEntityData(slicedArray, prevSelection);
-        setColumnData(merge);
+        // const merge = maintainSelectedEntityData(slicedArray, prevSelection);
+        // setColumnData(merge);
+        setColumnData(slicedArray)
         setPageNumber(1);
-        if (prevSelection) {
-          const selectIndex = prevSelection.length;
-          selection.setRangeSelected(0, selectIndex, true, false);
-          let yaxis = selectIndex * 50;
-          document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
-        }
-        else {
-          document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
-        }
+        // if (prevSelection) {
+        //   const selectIndex = prevSelection.length;
+        //   selection.setRangeSelected(0, selectIndex, true, false);
+        //   let yaxis = selectIndex * 50;
+        //   document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
+        // }
+        // else {
+        //   document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
+        // }
       }
     }
     else {
       const data = await getEntityFilterResults(context, fieldName, isSortedDescending, search);
       setNextLink(data.nextLink);
-      setColumnData(maintainSelectedEntityData(data.entities, prevSelection))
-      if (prevSelection) {
-        const selectIndex = prevSelection.length;
-        selection.setRangeSelected(0, selectIndex, true, false);
-        let yaxis = selectIndex * 50;
-        document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
-      }
-      else {
-        document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
-      }
+      setColumnData(data.entities);
+      // setColumnData(maintainSelectedEntityData(data.entities, prevSelection))
+      // if (prevSelection) {
+      //   const selectIndex = prevSelection.length;
+      //   selection.setRangeSelected(0, selectIndex, true, false);
+      //   let yaxis = selectIndex * 50;
+      //   document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, yaxis);
+      // }
+      // else {
+      //   document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
+      // }
     }
     setPageNumber(1);
   }
 
   function _onColumnClick(ev: React.MouseEvent<HTMLElement, MouseEvent>, column: IColumn) {
     const prevSelection = selectionArray;
-    console.log(prevSelection);
     const newColumns: IColumn[] = columns.slice();
     const currColumn: IColumn = newColumns.filter(currCol => column.key === currCol.key)[0]
     newColumns.forEach((newCol: IColumn) => {
@@ -295,6 +299,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     });
     setColumns(newColumns);
     handleSetSortColumnData(currColumn.fieldName!, currColumn.isSortedDescending, prevSelection);
+    selection.setAllSelected(false);
   }
   //#endregion
 
@@ -309,26 +314,29 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     if (search) {
       const data = await getEntitySearchResults(context, search);
       if (data) {
-        const merge = maintainSelectedEntityData(data.entities, prevSelection);
-        setColumnData(merge);
+        // const merge = maintainSelectedEntityData(data.entities, prevSelection);
+        setColumnData(data.entities);
+        setSelectionArray(prevSelection);
         setNextLink(data.nextLink);
       }
     } else {
       const data = await getEntityInitialResults(context);
       if (data) {
-        const merge = maintainSelectedEntityData(data.entities, prevSelection);
-        setColumnData(merge);
+        // const merge = maintainSelectedEntityData(data.entities, prevSelection);
+        setColumnData(data.entities);
+        setSelectionArray(prevSelection);
         setNextLink(data.nextLink);
       }
     }
-    if (prevSelection) {
-      selection.setRangeSelected(0, prevSelection.length, true, false);
-    }
+    // if (prevSelection) {
+    //   selection.setRangeSelected(0, prevSelection.length, true, false);
+    // }
     setPageNumber(1);
+    selection.setAllSelected(false);
     setIsLoading(false)
-    document
-      .querySelector(".ms-ScrollablePane--contentContainer")
-      ?.scrollTo(0, 0);
+    // document
+    //   .querySelector(".ms-ScrollablePane--contentContainer")
+    //   ?.scrollTo(0, 0);
   };
   const handlePortalSearchClick = async () => {
     setIsLoading(true)
@@ -338,30 +346,33 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       if (data) {
         setPortalDataSet(data.value);
         const slicedArray = data.value.slice(0, 50);
-        const merge = maintainSelectedEntityData(slicedArray, prevSelection);
-        setColumnData(merge);
+        //const merge = maintainSelectedEntityData(slicedArray, prevSelection);
+        setColumnData(slicedArray);
+        setSelectionArray(prevSelection);
         setPortalDataSize(data["@odata.count"]);
+        setIsLoading(false);
       }
     } else {
       const data = await getPortalInitialResults(context);
-
       if (data) {
         setPortalDataSet(data.value);
         const slicedArray = data.value.slice(0, 50);
-        const merge = maintainSelectedEntityData(slicedArray, prevSelection);
-        setColumnData(merge);
+        // const merge = maintainSelectedEntityData(slicedArray, prevSelection);
+        setColumnData(slicedArray);
+        setSelectionArray(prevSelection);
         setPortalDataSize(data["@odata.count"]);
+        setIsLoading(false);
       }
-
     }
-    if (prevSelection) {
-      selection.setRangeSelected(0, prevSelection.length, true, false);
-    }
+    // if (prevSelection) {
+    //   selection.setRangeSelected(0, prevSelection.length, true, false);
+    // }
     setPageNumber(1);
     setIsLoading(false);
-    document
-      .querySelector(".ms-ScrollablePane--contentContainer")
-      ?.scrollTo(0, 0);
+    selection.setAllSelected(false);
+    // document
+    //   .querySelector(".ms-ScrollablePane--contentContainer")
+    //   ?.scrollTo(0, 0);
   };
   const handleOnCancelClick = () => {
     setModalOpen(false);
@@ -381,6 +392,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         window.dispatchEvent(new Event("storage"));
         setModalOpen(false);
       }
+      setModalOpen(false);
     }
     else {
       setOutputVariable(undefined);
@@ -397,9 +409,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       window.dispatchEvent(new Event("storage"));
     }
   };
-  const handleOnNewClick = () => {
-    setPanelOpen(true);
-  };
+  // const handleOnNewClick = () => {
+  //   setPanelOpen(true);
+  // };
   const dismissPanel = () => {
     setPanelOpen(false);
   };
@@ -410,46 +422,59 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     const data = await getSearchPage(context, page, columns, search);
     const any = data as any;
     setNextLink(data.nextLink);
-    setColumnData(maintainSelectedEntityData(data.entities, prevSelection));
-    if (prevSelection) {
-      const selectIndex = prevSelection.length;
-      selection.setRangeSelected(0, selectIndex, true, false);
-      let yaxis = selectIndex * 50;
-      document
-        .querySelector(".ms-ScrollablePane--contentContainer")
-        ?.scrollTo(0, yaxis);
-    }
-    else {
-      document
-        .querySelector(".ms-ScrollablePane--contentContainer")
-        ?.scrollTo(0, 0);
-    }
+    // setColumnData(maintainSelectedEntityData(data.entities, prevSelection));
+    setColumnData(data.entities);
+    setSelectionArray(prevSelection);
+    // if (prevSelection) {
+    //   const selectIndex = prevSelection.length;
+    //   selection.setRangeSelected(0, selectIndex, true, false);
+    //   let yaxis = selectIndex * 50;
+    //   document
+    //     .querySelector(".ms-ScrollablePane--contentContainer")
+    //     ?.scrollTo(0, yaxis);
+    // }
+    // else {
+    //   document
+    //     .querySelector(".ms-ScrollablePane--contentContainer")
+    //     ?.scrollTo(0, 0);
+    // }
     setFetchXMLPagingCookie(any.fetchXmlPagingCookie);
     setIsLoading(false);
+    selection.setAllSelected(false);
   };
   const getPortalRequestedPage = async (page: number) => {
     const prevSelection = selectionArray;
     if (portalDataSet) {
       const slicedArray = portalDataSet.slice((page - 1) * 50, (page * 50))
-      setColumnData(maintainSelectedEntityData(slicedArray, prevSelection));
-      if (prevSelection) {
-        const selectIndex = prevSelection.length;
-        let yaxis = selectIndex * 50;
-        setTimeout(() => {
-          selection.setRangeSelected(0, selectIndex, true, false);
-        }, 100)
-        document
-          .querySelector(".ms-ScrollablePane--contentContainer")
-          ?.scrollTo(0, yaxis);
-      }
-      else {
-        document
-          .querySelector(".ms-ScrollablePane--contentContainer")
-          ?.scrollTo(0, 0);
-      }
+      // setColumnData(maintainSelectedEntityData(slicedArray, prevSelection));
+      setColumnData(slicedArray);
+      setSelectionArray(prevSelection);
+      selection.setAllSelected(false);
+      // if (prevSelection) {
+      //   const selectIndex = prevSelection.length;
+      //   let yaxis = selectIndex * 50;
+      //   setTimeout(() => {
+      //     selection.setRangeSelected(0, selectIndex, true, false);
+      //   }, 100)
+      //   document
+      //     .querySelector(".ms-ScrollablePane--contentContainer")
+      //     ?.scrollTo(0, yaxis);
+      // }
+      // else {
+      //   document
+      //     .querySelector(".ms-ScrollablePane--contentContainer")
+      //     ?.scrollTo(0, 0);
+      // }
     }
   }
-
+  const removeTag = (etn:ComponentFramework.WebApi.Entity) => {
+    if(selectionArray)
+    {
+      
+      const tempArray = selectionArray.filter(a => a["@odata.etag"] !== etn["@odata.etag"])
+      setSelectionArray(tempArray);
+    }
+  }
   //#region useEffect
 
   useEffect(() => {
@@ -461,9 +486,6 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(()=> {
-    console.log(selectionArray)
-  },[selectionArray])
   //#endregion
   useEffect(() => {
     if (blurbDivRef.current)
@@ -471,235 +493,243 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         blurbDivRef.current.offsetTop + blurbDivRef.current.offsetHeight
       );
   }, [headerRef, searchDivRef, blurbDivRef]);
-  if (window.location.href.includes("portal")) {
-    return (
-      <>
-        <Modal isOpen={isModalOpen}>
-          <div className={classNames.modalClass} ref={modalRef}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                width: "100%",
-                borderBottom: "1px solid #e5e5e5",
-              }}
-              ref={headerRef}
-            >
-              <h1
-                style={{
-                  fontFamily:
-                    '"Segoe UI Light","Helvetica Neue",Helvetica,Arial,sans-serif',
-                  fontWeight: 500,
-                  color: "#232222",
-                  lineHeight: "1.42857",
-                  fontSize: "21px",
-                  padding: "15px",
-                }}
-                className={"modal-title"}
-              >
-                Lookup Records
-              </h1>
-              <IconButton
-                onClick={handleOnCancelClick}
-                style={{ padding: "15px", marginRight: "8px" }}
-                iconProps={CancelIcon}
-              />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                borderBottom: "1px solid #e5e5e5",
-                paddingTop: "15px",
-                marginBottom: "9px",
-                paddingBottom: "9px",
-              }}
-              ref={searchDivRef}
-            >
-              <input
-                style={{
-                  border: "1px solid rgb(216,216,216)",
-                  height: "35px",
-                  padding: "0 2px",
-                  boxSizing: "border-box",
-                }}
-                placeholder={"Search"}
-                onChange={onSearchChange}
-              ></input>
-              <TooltipHost
-                id={useId("searchtooltip")}
-                setAriaDescribedBy={false}
-                content="Search"
-              >
-                <IconButton
-                  iconProps={SearchIcon}
-                  ariaLabel="Search"
-                  onClick={handlePortalSearchClick}
-                  style={{
-                    border: `1px solid ${iconColor}`,
-                    background: buttonColor,
-                    color: iconColor,
-                    height: "35px",
-                    width: "35px",
-                    borderRadius: "0px",
-                    marginRight: "8px",
-                  }}
-                />
-              </TooltipHost>
-            </div>
-            <div
-              style={{ fontSize: "12.75px", padding: "0px 15px" }}
-              ref={blurbDivRef}
-            >
-              <span>Choose your records and click select to continue</span>
-            </div>
-
-            <div
-              style={{
-                overflow: "auto",
-                height: listHeight,
-                width: "100%",
-              }}
-            >
-              {isLoading === true ?
-                <div style={{ height: listHeight, display: "grid", justifyContent: "center", alignItems: "center", width: "80%", margin: "auto" }}>
-                  <Spinner size={SpinnerSize.large} />
-                </div>
-                :
-                <ScrollablePane
-                  style={{
-                    height: "inherit",
-                    paddingTop: 0,
-                    marginTop: paneMargin,
-                    marginBottom: "70px",
-                    width: "inherit",
-                    display: "block",
-                  }}
-                  id={"multiselectmodalScrollablePaneId"}
-                >
-                  <DetailsList
-                    items={columnData}
-                    columns={columns}
-                    isHeaderVisible={true}
-                    onRenderDetailsHeader={onRenderDetailsHeader}
-                    checkboxVisibility={CheckboxVisibility.always}
-                    selection={selection}
-                    selectionMode={SelectionMode.multiple}
-                    selectionPreservedOnEmptyClick={true}
-                    enterModalSelectionOnTouch={true}
-                    ariaLabelForSelectionColumn="Toggle selection"
-                    ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                    checkButtonAriaLabel="select row"
-                    onRenderRow={onRenderRow}
-                    styles={{
-                      root: {
-                        overflowX: "hidden"
-                      }
-                    }}
-                  />
-                </ScrollablePane>
-              }
-
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                width: "100%",
-                borderTop: "1px solid #e5e5e5",
-                display: "flex",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                boxSizing: "border-box",
-              }}
-            >
-              <Navigation
-                context={context}
-                pageNumber={pageNumber || 1}
-                setPageNumber={setPageNumber}
-                nextLink={nextLink}
-                fetchXMLPagingCookie={fetchXMLPagingCookie}
-                setColumnData={setColumnData}
-                getRequestedPage={getPortalRequestedPage}
-                portalDataSize={portalDataSize}
-                isPortal={true}
-              />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  alignItems: "end",
-                  margin: "8px",
-                }}
-              >
-                <DefaultButton
-                  style={{
-                    background: selectButtonColor,
-                    color: selectButtonFontColor,
-                    marginRight: "8px",
-                  }}
-                  className={classNames.modalButton}
-                  onClick={handleOnSelectClick}
-                >
-                  Select
-                </DefaultButton>
-                <DefaultButton
-                  className={classNames.modalButton}
-                  onClick={handleOnCancelClick}
-                >
-                  Cancel
-                </DefaultButton>
-                <DefaultButton
-                  style={{ marginLeft: 8 }}
-                  className={classNames.modalButton}
-                  onClick={handleOnClearClick}
-                >
-                  Clear Selection
-                </DefaultButton>
-                {enableNew ? (
-                  redirectForNew ? (
-                    <a
-                      href={redirectURL}
-                      style={{ marginLeft: 8 }}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <DefaultButton className={classNames.modalButton}>
-                        New
-                      </DefaultButton>
-                    </a>
-                  ) : (
-                    <DefaultButton
-                      className={classNames.modalButton}
-                      onClick={handleOnNewClick}
-                    >
-                      New
-                    </DefaultButton>
-                  )
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </Modal>
-        <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
-          {enableNew ? (
-            redirectForNew ? null : (
-              <NewEntry
-                context={context}
-                setColumnData={setColumnData}
-                setPanelOpen={setPanelOpen}
-                selection={selection}
-                selectionArray={selectionArray}
-              />
-            )
-          ) : null}
-        </Panel>
-      </>
-    );
+  const getIsPortal = () => {
+    if(window.location.href.includes("portal"))
+    {
+      return true;
+    }
+    return false;
   }
+  const isPortal = getIsPortal();
+  // if (window.location.href.includes("portal")) {
+  //   return (
+  //     <>
+  //       <Modal isOpen={isModalOpen}>
+  //         <div className={classNames.modalClass} ref={modalRef}>
+  //           <div
+  //             style={{
+  //               display: "flex",
+  //               justifyContent: "space-between",
+  //               alignItems: "center",
+  //               width: "100%",
+  //               borderBottom: "1px solid #e5e5e5",
+  //             }}
+  //             ref={headerRef}
+  //           >
+  //             <h1
+  //               style={{
+  //                 fontFamily:
+  //                   '"Segoe UI Light","Helvetica Neue",Helvetica,Arial,sans-serif',
+  //                 fontWeight: 500,
+  //                 color: "#232222",
+  //                 lineHeight: "1.42857",
+  //                 fontSize: "21px",
+  //                 padding: "15px",
+  //               }}
+  //               className={"modal-title"}
+  //             >
+  //               Lookup Records
+  //             </h1>
+  //             <IconButton
+  //               onClick={handleOnCancelClick}
+  //               style={{ padding: "15px", marginRight: "8px" }}
+  //               iconProps={CancelIcon}
+  //             />
+  //           </div>
+  //           <div
+  //             style={{
+  //               display: "flex",
+  //               justifyContent: "flex-end",
+  //               borderBottom: "1px solid #e5e5e5",
+  //               paddingTop: "15px",
+  //               marginBottom: "9px",
+  //               paddingBottom: "9px",
+  //             }}
+  //             ref={searchDivRef}
+  //           >
+  //             <input
+  //               style={{
+  //                 border: "1px solid rgb(216,216,216)",
+  //                 height: "35px",
+  //                 padding: "0 2px",
+  //                 boxSizing: "border-box",
+  //               }}
+  //               placeholder={"Search"}
+  //               onChange={onSearchChange}
+  //             ></input>
+  //             <TooltipHost
+  //               id={useId("searchtooltip")}
+  //               setAriaDescribedBy={false}
+  //               content="Search"
+  //             >
+  //               <IconButton
+  //                 iconProps={SearchIcon}
+  //                 ariaLabel="Search"
+  //                 onClick={handlePortalSearchClick}
+  //                 style={{
+  //                   border: `1px solid ${iconColor}`,
+  //                   background: buttonColor,
+  //                   color: iconColor,
+  //                   height: "35px",
+  //                   width: "35px",
+  //                   borderRadius: "0px",
+  //                   marginRight: "8px",
+  //                 }}
+  //               />
+  //             </TooltipHost>
+  //           </div>
+  //           <div
+  //             style={{ fontSize: "12.75px", padding: "0px 15px" }}
+  //             ref={blurbDivRef}
+  //           >
+  //             <span>Choose your records and click select to continue</span>
+  //           </div>
+
+  //           <div
+  //             style={{
+  //               overflow: "auto",
+  //               height: listHeight,
+  //               width: "100%",
+  //             }}
+  //           >
+  //             {isLoading === true ?
+  //               <div style={{ height: listHeight, display: "grid", justifyContent: "center", alignItems: "center", width: "80%", margin: "auto" }}>
+  //                 <Spinner size={SpinnerSize.large} />
+  //               </div>
+  //               :
+  //               <ScrollablePane
+  //                 style={{
+  //                   paddingTop: 0,
+  //                   marginTop: paneMargin,
+  //                   marginBottom: "110px",
+  //                   width: "inherit",
+  //                   display: "block",
+  //                 }}
+  //                 id={"multiselectmodalScrollablePaneId"}
+  //               >
+  //                 <DetailsList
+  //                   items={columnData}
+  //                   columns={columns}
+  //                   isHeaderVisible={true}
+  //                   onRenderDetailsHeader={onRenderDetailsHeader}
+  //                   checkboxVisibility={CheckboxVisibility.always}
+  //                   selection={selection}
+  //                   selectionMode={SelectionMode.multiple}
+  //                   getKey={_getKey}
+  //                   selectionPreservedOnEmptyClick={true}
+  //                   enterModalSelectionOnTouch={true}
+  //                   ariaLabelForSelectionColumn="Toggle selection"
+  //                   ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+  //                   checkButtonAriaLabel="select row"
+  //                   onRenderRow={onRenderRow}
+  //                   styles={{
+  //                     root: {
+  //                       overflowX: "hidden"
+  //                     }
+  //                   }}
+  //                 />
+  //               </ScrollablePane>
+  //             }
+
+  //           </div>
+  //           <div
+  //             style={{
+  //               position: "absolute",
+  //               bottom: 0,
+  //               left: 0,
+  //               width: "100%",
+  //               borderTop: "1px solid #e5e5e5",
+  //               display: "flex",
+  //               justifyContent: "space-between",
+  //               flexWrap: "wrap",
+  //               boxSizing: "border-box",
+  //             }}
+  //           >
+  //             <Navigation
+  //               context={context}
+  //               pageNumber={pageNumber || 1}
+  //               setPageNumber={setPageNumber}
+  //               nextLink={nextLink}
+  //               fetchXMLPagingCookie={fetchXMLPagingCookie}
+  //               setColumnData={setColumnData}
+  //               getRequestedPage={getPortalRequestedPage}
+  //               portalDataSize={portalDataSize}
+  //               isPortal={true}
+  //             />
+
+  //             <div
+  //               style={{
+  //                 display: "flex",
+  //                 justifyContent: "flex-end",
+  //                 alignItems: "end",
+  //                 margin: "8px",
+  //               }}
+  //             >
+  //               <DefaultButton
+  //                 style={{
+  //                   background: selectButtonColor,
+  //                   color: selectButtonFontColor,
+  //                   marginRight: "8px",
+  //                 }}
+  //                 className={classNames.modalButton}
+  //                 onClick={handleOnSelectClick}
+  //               >
+  //                 Select
+  //               </DefaultButton>
+  //               <DefaultButton
+  //                 className={classNames.modalButton}
+  //                 onClick={handleOnCancelClick}
+  //               >
+  //                 Cancel
+  //               </DefaultButton>
+  //               <DefaultButton
+  //                 style={{ marginLeft: 8 }}
+  //                 className={classNames.modalButton}
+  //                 onClick={handleOnClearClick}
+  //               >
+  //                 Clear Selection
+  //               </DefaultButton>
+  //               {enableNew ? (
+  //                 redirectForNew ? (
+  //                   <a
+  //                     href={redirectURL}
+  //                     style={{ marginLeft: 8 }}
+  //                     target="_blank"
+  //                     rel="noreferrer"
+  //                   >
+  //                     <DefaultButton className={classNames.modalButton}>
+  //                       New
+  //                     </DefaultButton>
+  //                   </a>
+  //                 ) : (
+  //                   <DefaultButton
+  //                     className={classNames.modalButton}
+  //                     onClick={handleOnNewClick}
+  //                   >
+  //                     New
+  //                   </DefaultButton>
+  //                 )
+  //               ) : null}
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </Modal>
+  //       <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
+  //         {enableNew ? (
+  //           redirectForNew ? null : (
+  //             <NewEntry
+  //               context={context}
+  //               setColumnData={setColumnData}
+  //               setPanelOpen={setPanelOpen}
+  //               selection={selection}
+  //               selectionArray={selectionArray}
+  //             />
+  //           )
+  //         ) : null}
+  //       </Panel>
+  //     </>
+  //   );
+  // }
   return (
     <>
       <Modal isOpen={isModalOpen}>
@@ -740,14 +770,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             marginBottom: "9px",
             paddingBottom: "9px",
           }}>
-            {typeof enableViewFilters === "string" && enableViewFilters.length > 0 ?
+            {/* {typeof enableViewFilters === "string" && enableViewFilters.length > 0 ?
               <select style={{ marginLeft: "8px" }}>
                 <option value={"a"}>My Active Records</option>
               </select>
               : <div></div>
-            }
-
-
+            } */}
+            <div></div>
             <div
               style={{
                 display: "flex",
@@ -774,7 +803,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                 <IconButton
                   iconProps={SearchIcon}
                   ariaLabel="Search"
-                  onClick={handleOnSearchClick}
+                  onClick={isPortal? handlePortalSearchClick:handleOnSearchClick}
                   style={{
                     border: `1px solid ${iconColor}`,
                     background: buttonColor,
@@ -812,7 +841,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                   height: "inherit",
                   paddingTop: 0,
                   marginTop: paneMargin,
-                  marginBottom: "70px",
+                  marginBottom: "110px",
                   width: "inherit",
                   display: "block",
                 }}
@@ -837,6 +866,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             }
 
           </div>
+          <div style={{height:"50px", paddingTop:"8px", width:"100%", borderTop:"1px solid #e5e5e5",boxSizing:"border-box", position:"absolute", bottom:"50px",  overflowY:"hidden" }}>
+            <div style={{width:"95%", margin:"auto", display:"flex", alignItems:"center", maxLines:1, overflowX:"auto"}}>
+              {selectionArray?.map((item)=> {
+                return <EntitySelector entity={item} title={item[displayProperty]} removeTag={removeTag} key={getId("xbox")}/>
+              })}
+              </div>
+          </div>
           <div
             style={{
               position: "absolute",
@@ -857,7 +893,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               nextLink={nextLink}
               fetchXMLPagingCookie={fetchXMLPagingCookie}
               setColumnData={setColumnData}
-              getRequestedPage={getRequestedPage}
+              getRequestedPage={isPortal? getPortalRequestedPage:getRequestedPage}
+              portalDataSize={isPortal?portalDataSize:undefined}
             />
 
             <div
@@ -892,7 +929,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               >
                 Clear Selection
               </DefaultButton>
-              {enableNew ? (
+              {/* {enableNew ? (
                 redirectForNew ? (
                   <a
                     href={redirectURL}
@@ -912,13 +949,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                     New
                   </DefaultButton>
                 )
-              ) : null}
+              ) : null} */}
             </div>
           </div>
         </div>
       </Modal>
       <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
-        {enableNew ? (
+        {/* {enableNew ? (
           redirectForNew ? null : (
             <NewEntry
               context={context}
@@ -928,7 +965,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               selectionArray={selectionArray}
             />
           )
-        ) : null}
+        ) : null} */}
       </Panel>
     </>
   );

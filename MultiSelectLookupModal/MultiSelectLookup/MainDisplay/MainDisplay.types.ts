@@ -14,6 +14,7 @@ export type IMainDisplay = {
     setPortalDataSet: Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
     setPortalDataSize : Dispatch<SetStateAction<number|undefined>>;
     setIsLoading: Dispatch<SetStateAction<boolean>>;
+    setSelectionArray:Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
 }
 export type RetrieveMultipleRecordsPortalResponse = {
     value: ComponentFramework.WebApi.Entity[],

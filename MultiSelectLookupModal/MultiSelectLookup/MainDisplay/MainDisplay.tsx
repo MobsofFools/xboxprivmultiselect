@@ -24,7 +24,8 @@ const MainDisplay = (props: IMainDisplay) => {
     setError,
     setPortalDataSet,
     setPortalDataSize,
-    setIsLoading
+    setIsLoading,
+    setSelectionArray
   } = props;
 
   const entityName = context.parameters.entityName.raw!;
@@ -47,11 +48,11 @@ const MainDisplay = (props: IMainDisplay) => {
             const json = JSON.parse(
               outputVariable
             ) as ComponentFramework.WebApi.Entity[];
-            const merge = maintainSelectedEntityData(slicedData, json);
-
-            setColumnData(merge);
+            // const merge = maintainSelectedEntityData(slicedData, json);
+            setSelectionArray(json);
+            setColumnData(slicedData);
             setIsLoading(false);
-            selection.setRangeSelected(0, json.length, true, false);
+            // selection.setRangeSelected(0, json.length, true, false);
           } else {
             setColumnData(slicedData);
           }
@@ -71,11 +72,12 @@ const MainDisplay = (props: IMainDisplay) => {
             const json = JSON.parse(
               outputVariable
             ) as ComponentFramework.WebApi.Entity[];
-            const merge = maintainSelectedEntityData(data.entities, json);
-            setColumnData(merge);
+            setSelectionArray(json);
+            // const merge = maintainSelectedEntityData(data.entities, json);
+            setColumnData(data.entities);
             setPageNumber(1);
             setIsLoading(false);
-            selection.setRangeSelected(0, json.length, true, false);
+            // selection.setRangeSelected(0, json.length, true, false);
           }
         } else {
           setColumnData(data.entities);
@@ -83,7 +85,8 @@ const MainDisplay = (props: IMainDisplay) => {
         setNextLink(data.nextLink);
       }
     }
-    
+    selection.setAllSelected(false);
+    setIsLoading(false);
   };
   function isJsonString(str: string) {
     try {
