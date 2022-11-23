@@ -93,6 +93,9 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
     {
       searchString += `${oDataFilter} and (${filterString})`;
     }
+    else{
+      searchString += filterString;
+    }
     if(typeof query === "string" && query.length>0)
     {
       
@@ -136,6 +139,9 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
         searchString += oDataFilter;
       }
     }
+    else{
+      searchString += filterString;
+    }
     if(typeof query === "string" && query.length>0)
     {
       queryString += searchString;
@@ -177,7 +183,9 @@ const getFetchXML = (page:number, entityName:string, selectedColumns:string, pag
       else {
         searchString += oDataFilter;
       }
-      
+    }
+    else{
+      searchString += filterString;
     }
     const data = await context.webAPI.retrieveMultipleRecords(
       entityName,
@@ -214,12 +222,12 @@ export const getEntityAfterCreate = async (context:ComponentFramework.Context<II
     const data = await context.webAPI.retrieveRecord(entityName, newLookup.id, queryString);
     return data;
 }
-  export const maintainSelectedEntityData = (data:ComponentFramework.WebApi.Entity[], selectionArray?:ComponentFramework.WebApi.Entity[]) => {
+  export const maintainSelectedEntityData = (entityname:string, data:ComponentFramework.WebApi.Entity[], selectionArray?:ComponentFramework.WebApi.Entity[]) => {
     if(selectionArray)
     {
       let dataArray:ComponentFramework.WebApi.Entity[] = selectionArray.concat(data);
       let uniqueObjArray = [
-        ...new Map(dataArray.map((item) => [item["@odata.etag"], item])).values(),
+        ...new Map(dataArray.map((item) => [item[`${entityname}id`], item])).values(),
     ];
       return uniqueObjArray;
     }

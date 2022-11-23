@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import MainDisplay from "./MainDisplay/MainDisplay";
 import MultiSelectModal from "./Modal/MultiSelectModal";
 import { IMultiSelect } from "./MultiSelect.types";
@@ -18,19 +18,46 @@ const MultiSelect = (props: IMultiSelect) => {
   const [portalDataSet, setPortalDataSet] = useState<ComponentFramework.WebApi.Entity[]>();
   const [portalDataSize, setPortalDataSize] = useState<number>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [prevSelectionArray, setPrevSelectionArray] = useState<ComponentFramework.WebApi.Entity[]>()
-
-  const maintainSelectionData = (arr:any[], arr2:any[]) => {
-    if(arr.length - arr2.length > 0){
-     //increase 
-    }
-    else{
-      //decrease
-    }
-  }
+  const [pageSelected, setPageSelected] = useState<ComponentFramework.WebApi.Entity[]>();
+  const entityName = context?.parameters.entityName.raw!;
+  
   useEffect(()=> {
     onChange(outputVariable);
   },[outputVariable])
+
+  const getIndexMatch= (item:ComponentFramework.WebApi.Entity, selected:ComponentFramework.WebApi.Entity) => 
+  {
+    return item[`${entityName}id`] === selected[`${entityName}id`]
+  }
+  // const usePrevious = <T extends unknown>(value: T): T | undefined => {
+  //   const ref = useRef<T>();
+  //   useEffect(() => {
+  //     ref.current = value;
+  //   },[value]);
+  //   return ref.current;
+  // };
+
+  const updateSelectionArray = (entityName:string,current:ComponentFramework.WebApi.Entity[],prev?:ComponentFramework.WebApi.Entity[]) =>  {
+    let pageSelect:ComponentFramework.WebApi.Entity[] | undefined;
+    let curr = current;
+    setPageSelected((pre)=> {
+      pageSelect = pre;
+      return current
+    });
+    let difference = pageSelect?.filter(x=> !current.includes(x))
+    // console.log("current",curr.length);
+    // console.log("difference",difference);
+    // console.log("pre", pageSelect?.length)
+    if(difference && difference.length === 1 && (pageSelect && pageSelect.length > current.length) ){
+      const data = maintainSelectedEntityData(entityName, curr,prev);
+      curr = data.filter(a => a[`${entityName}id`] !== difference![0][`${entityName}id`])
+      return curr;
+    }
+    else{
+      return maintainSelectedEntityData(entityName, curr,prev)
+    }
+    
+  }
   const selection = useMemo(
     () =>
       new Selection({
@@ -41,10 +68,9 @@ const MultiSelect = (props: IMultiSelect) => {
               selection.getSelection()[i] as ComponentFramework.WebApi.Entity[]
             );
           }
-          console.log(selection.getSelectedIndices());
-          setPrevSelectionArray(array)
-          setSelectionArray((prev)=> maintainSelectedEntityData(array,prev));
-          console.log(selection)
+          
+          
+          setSelectionArray((prev)=> updateSelectionArray(entityName, array,prev));
         },
         selectionMode: SelectionMode.multiple,
       }),
@@ -67,15 +93,23 @@ const MultiSelect = (props: IMultiSelect) => {
       }
     }
   }
-
-  // useEffect(()=> {
-  //   console.log("prev",prevSelectionArray);
-  //   console.log("curr",selectionArray);
-
-  // },[prevSelectionArray,selectionArray])
+  useEffect(()=>{
+    selectionArray?.forEach((item)=> {
+      const index = columnData.findIndex((selItem) => getIndexMatch(item, selItem));
+      if(index >= 0){
+        setTimeout(()=>{
+          selection.setIndexSelected(index,true,false);
+        },150)
+      }
+    })
+  },[columnData])
   useEffect(()=> {
     handleOnLoad();
   },[])
+
+  // useEffect(()=>{
+  //   console.log("selectionArray", selectionArray)
+  // },[selectionArray])
   if(context)
   {
     return (
