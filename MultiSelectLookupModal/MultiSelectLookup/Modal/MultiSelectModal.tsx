@@ -28,6 +28,7 @@ import {
   getPortalSearchResults,
   getPortalInitialResults,
   getEntityFilterResults,
+  getPortalFilterResults,
 } from "../functions/apicalls";
 import NewEntry from "../NewEntry/NewEntry";
 import {
@@ -204,7 +205,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     return columns;
   };
   const [columns, setColumns] = useState<IColumn[]>(getColumns());
-  function _getKey(item:any, index?: number) : string {
+  function _getKey(item: any, index?: number): string {
     return item.key;
   }
   const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> = (
@@ -239,21 +240,22 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       </div>
     );
   };
-  function _copyAndSort<T>(items: T[], columnKey: string, isSortedDescending?: boolean): T[] {
-    const key = columnKey as keyof T;
-    return items.slice(0).sort((a: T, b: T) => ((isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1));
-  }
+  // function _copyAndSort<T>(items: T[], columnKey: string, isSortedDescending?: boolean): T[] {
+  //   const key = columnKey as keyof T;
+  //   console.log(items);
+  //   return items.slice().sort((a: T, b: T) => ((isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1));
+  // }
 
-  const handleSetSortColumnData = async (fieldName: string, isSortedDescending?: boolean, prevSelection?:ComponentFramework.WebApi.Entity[]) => {
+  const handleSetSortColumnData = async (fieldName: string, isSortedDescending?: boolean, prevSelection?: ComponentFramework.WebApi.Entity[]) => {
     if (window.location.href.includes("powerappsportal")) {
       if (portalDataSet) {
-        const newItems = _copyAndSort(portalDataSet, fieldName, isSortedDescending);
-        setPortalDataSet(newItems);
-        const slicedArray = newItems.slice(0, 50);
-        // const merge = maintainSelectedEntityData(slicedArray, prevSelection);
-        // setColumnData(merge);
+        const data = await getPortalFilterResults(context, fieldName, isSortedDescending, search);
+        setPortalDataSet(data.value);
+        const slicedArray = data.value.slice(0, 50);
         setColumnData(slicedArray)
         setPageNumber(1);
+        // const merge = maintainSelectedEntityData(slicedArray, prevSelection);
+        // setColumnData(merge);
         // if (prevSelection) {
         //   const selectIndex = prevSelection.length;
         //   selection.setRangeSelected(0, selectIndex, true, false);
@@ -467,10 +469,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       // }
     }
   }
-  const removeTag = (etn:ComponentFramework.WebApi.Entity) => {
-    if(selectionArray)
-    {
-      
+  const removeTag = (etn: ComponentFramework.WebApi.Entity) => {
+    if (selectionArray) {
+
       const tempArray = selectionArray.filter(a => a["@odata.etag"] !== etn["@odata.etag"])
       setSelectionArray(tempArray);
     }
@@ -493,9 +494,16 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
         blurbDivRef.current.offsetTop + blurbDivRef.current.offsetHeight
       );
   }, [headerRef, searchDivRef, blurbDivRef]);
+
+  // useEffect(()=> {
+  //   console.log("Column Change")
+  //   selectionArray?.forEach((item)=>{
+  //     const index = columnData.findIndex((i)=> i["@odata.etag"] === item["@odata.etag"]);
+  //     console.log(index);
+  //   })
+  // },[columnData])
   const getIsPortal = () => {
-    if(window.location.href.includes("portal"))
-    {
+    if (window.location.href.includes("portal")) {
       return true;
     }
     return false;
@@ -730,6 +738,18 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   //     </>
   //   );
   // }
+  // useEffect(() => {
+  //   const items = selection.getItems();
+  //   if(selectionArray)
+  //   {
+  //     items.forEach((item)=> {
+  //       selectionArray.forEach(()=> {
+
+  //       })
+  //     })  
+  //   }
+  //   selection.getItemIndex
+  // }, [selectionArray, columnData, portalDataSet, columns])
   return (
     <>
       <Modal isOpen={isModalOpen}>
@@ -803,7 +823,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                 <IconButton
                   iconProps={SearchIcon}
                   ariaLabel="Search"
-                  onClick={isPortal? handlePortalSearchClick:handleOnSearchClick}
+                  onClick={isPortal ? handlePortalSearchClick : handleOnSearchClick}
                   style={{
                     border: `1px solid ${iconColor}`,
                     background: buttonColor,
@@ -853,6 +873,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                   isHeaderVisible={true}
                   onRenderDetailsHeader={onRenderDetailsHeader}
                   checkboxVisibility={CheckboxVisibility.always}
+                  // getKey={_getKey}
+                  // setKey="xbox"
                   selection={selection}
                   selectionMode={SelectionMode.multiple}
                   selectionPreservedOnEmptyClick={true}
@@ -866,12 +888,12 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             }
 
           </div>
-          <div style={{height:"50px", paddingTop:"8px", width:"100%", borderTop:"1px solid #e5e5e5",boxSizing:"border-box", position:"absolute", bottom:"50px",  overflowY:"hidden" }}>
-            <div style={{width:"95%", margin:"auto", display:"flex", alignItems:"center", maxLines:1, overflowX:"auto"}}>
-              {selectionArray?.map((item)=> {
-                return <EntitySelector entity={item} title={item[displayProperty]} removeTag={removeTag} key={getId("xbox")}/>
+          <div style={{ height: "50px", paddingTop: "8px", width: "100%", borderTop: "1px solid #e5e5e5", boxSizing: "border-box", position: "absolute", bottom: "50px", overflowY: "hidden" }}>
+            <div style={{ width: "95%", margin: "auto", display: "flex", alignItems: "center", maxLines: 1, overflowX: "auto" }}>
+              {selectionArray?.map((item) => {
+                return <EntitySelector entity={item} title={item[displayProperty]} removeTag={removeTag} key={getId("xbox")} />
               })}
-              </div>
+            </div>
           </div>
           <div
             style={{
@@ -893,10 +915,10 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               nextLink={nextLink}
               fetchXMLPagingCookie={fetchXMLPagingCookie}
               setColumnData={setColumnData}
-              getRequestedPage={isPortal? getPortalRequestedPage:getRequestedPage}
-              portalDataSize={isPortal?portalDataSize:undefined}
+              getRequestedPage={isPortal ? getPortalRequestedPage : getRequestedPage}
+              portalDataSize={portalDataSize}
+              isPortal={isPortal}
             />
-
             <div
               style={{
                 display: "flex",
@@ -954,8 +976,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
           </div>
         </div>
       </Modal>
-      <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
-        {/* {enableNew ? (
+      {/* <Panel isOpen={isPanelOpen} onDismiss={dismissPanel}>
+        {enableNew ? (
           redirectForNew ? null : (
             <NewEntry
               context={context}
@@ -965,8 +987,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
               selectionArray={selectionArray}
             />
           )
-        ) : null} */}
-      </Panel>
+        ) : null}
+      </Panel> */}
     </>
   );
 };

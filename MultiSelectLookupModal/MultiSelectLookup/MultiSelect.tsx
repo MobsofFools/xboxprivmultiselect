@@ -5,7 +5,6 @@ import { IMultiSelect } from "./MultiSelect.types";
 import { Selection,SelectionMode } from "@fluentui/react/lib/DetailsList";
 import { maintainSelectedEntityData } from "./functions/apicalls";
 
-
 const MultiSelect = (props: IMultiSelect) => {
   const {context, onChange} = props
   const [outputVariable, setOutputVariable] = useState<string|undefined>(context?.parameters.outputVariable.raw! || undefined);
@@ -19,7 +18,16 @@ const MultiSelect = (props: IMultiSelect) => {
   const [portalDataSet, setPortalDataSet] = useState<ComponentFramework.WebApi.Entity[]>();
   const [portalDataSize, setPortalDataSize] = useState<number>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [prevSelectionArray, setPrevSelectionArray] = useState<ComponentFramework.WebApi.Entity[]>()
 
+  const maintainSelectionData = (arr:any[], arr2:any[]) => {
+    if(arr.length - arr2.length > 0){
+     //increase 
+    }
+    else{
+      //decrease
+    }
+  }
   useEffect(()=> {
     onChange(outputVariable);
   },[outputVariable])
@@ -32,8 +40,11 @@ const MultiSelect = (props: IMultiSelect) => {
             array.push(
               selection.getSelection()[i] as ComponentFramework.WebApi.Entity[]
             );
-          }          
+          }
+          console.log(selection.getSelectedIndices());
+          setPrevSelectionArray(array)
           setSelectionArray((prev)=> maintainSelectedEntityData(array,prev));
+          console.log(selection)
         },
         selectionMode: SelectionMode.multiple,
       }),
@@ -57,6 +68,11 @@ const MultiSelect = (props: IMultiSelect) => {
     }
   }
 
+  // useEffect(()=> {
+  //   console.log("prev",prevSelectionArray);
+  //   console.log("curr",selectionArray);
+
+  // },[prevSelectionArray,selectionArray])
   useEffect(()=> {
     handleOnLoad();
   },[])

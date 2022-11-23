@@ -1,5 +1,7 @@
 import { Dispatch, SetStateAction } from "react"
+import { Selection } from "@fluentui/react";
 import { IInputs } from "../../generated/ManifestTypes";
+import { IObjectWithKey } from "@fluentui/react";
 
 export type IMultiSelectModal = {
     isModalOpen:boolean;
@@ -12,7 +14,7 @@ export type IMultiSelectModal = {
     setOutputVariable: Dispatch<SetStateAction<string|undefined>>;
     selectionArray: ComponentFramework.WebApi.Entity[]|undefined;
     setSelectionArray: Dispatch<SetStateAction<ComponentFramework.WebApi.Entity[]|undefined>>;
-    selection?:any;
+    selection:Selection<IObjectWithKey>;
     setPageNumber:Dispatch<SetStateAction<number>>;
     pageNumber:number;
     error:boolean;

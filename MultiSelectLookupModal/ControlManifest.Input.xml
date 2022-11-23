@@ -25,7 +25,7 @@
     <property name="displayedColumn" display-name-key="Displayed Column" description-key="Select the column shown outside of select eg:title " of-type="SingleLine.Text" usage="input" required="true" />
     <property name="orderBy" display-name-key="orderBy" description-key="Order By string, by logical name of field, eg: title" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="sortAsc" display-name-key="sortAsc" description-key="Sort Ascending. leave empty for descending" of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="oDataFilter" display-name-key="ODATA Filter" description-key="ODATA Filter for data" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="oDataFilter" display-name-key="ODATA Filter" description-key="Enter an OData style filter expression to limit which rows are listed" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="buttonColor" display-name-key="Button Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=white" of-type="SingleLine.Text" usage="input" required="false" />
     <property name="iconColor" display-name-key="Icon Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue. default=#2f5fef " of-type="SingleLine.Text" usage="input" required="false" />
     <property name="selectButtonColor" display-name-key="Select Button Color" description-key="Color in rgb(xxx,xxx,xxx), HEXCODE #FFFFFF, hsl(0,100%,100%), or supported standard html color eg. blue, or none. default=#2f5fef" of-type="SingleLine.Text" usage="input" required="false" />

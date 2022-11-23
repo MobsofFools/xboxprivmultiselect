@@ -1,11 +1,8 @@
-
 import { mergeStyleSets } from "@fluentui/react";
-import { useState } from "react";
 import { IEntitySelector } from "./EntitySelector.types";
 
 const EntitySelector = (props: IEntitySelector) => {
     const { entity, title, removeTag } = props;
-    const [showButton, setShowButton] = useState(false);
     const styles = mergeStyleSets({
         container: {
             marginTop:"8px",
@@ -16,6 +13,7 @@ const EntitySelector = (props: IEntitySelector) => {
             justifyContent: "space-between",
             alignItems: "center",
             margin: "0 4px",
+            background:"#fafafa",
             "&:hover": {
                 background: "#F6F6F6"
             }
@@ -42,23 +40,14 @@ const EntitySelector = (props: IEntitySelector) => {
             }
         }
     })
-    const handleOnMouseEnter = () => {
-        setShowButton(true);
-    };
-    const handleOnMouseLeave = () => {
-        setShowButton(false);
-    };
     return (
-        <div className={styles.container} onMouseEnter={handleOnMouseEnter} onMouseLeave={handleOnMouseLeave}>
+        <div className={styles.container}>
             <div className={styles.text} title={title}>
                 {title}
             </div>
-            {showButton ?
-                <div className={styles.button} onClick={() => removeTag(entity)}>
-                    <XSvg/>
-                </div>
-                : null
-            }
+            <div className={styles.button} onClick={() => removeTag(entity)}>
+                <XSvg/>
+            </div>
         </div>
     );
 }
