@@ -181,6 +181,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             maxWidth: minWidth,
             isMultiline: true,
             isResizable: true,
+            isSorted:false,
             onColumnClick: _onColumnClick,
           };
           columns.push(tempColumn);
@@ -327,6 +328,8 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     setModalOpen(false);
     setColumnData([]);
     setSelectionArray([]);
+    setSearch("");
+    setColumns(getColumns())
   };
   const handleOnSelectClick = () => {
     if (selectionArray && selectionArray.length > 0) {
@@ -478,6 +481,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
                   padding: "0 2px",
                   boxSizing: "border-box",
                 }}
+                type="search"
                 placeholder={"Search"}
                 value={search}
                 onChange={onSearchChange}
