@@ -70,11 +70,13 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const [search, setSearch] = useState<string>("");
   const [isPanelOpen, setPanelOpen] = useState<boolean>(false);
   const [paneMargin, setPaneMargin] = useState<number>(150);
+  const [errorText, setErrorText] = useState<string>("");
 
   const modalRef = createRef<HTMLDivElement>();
   const headerRef = createRef<HTMLDivElement>();
   const searchDivRef = createRef<HTMLDivElement>();
   const blurbDivRef = createRef<HTMLDivElement>();
+  
   //#endregion
 
   //#region Context Variables
@@ -348,17 +350,25 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     }
     else {
       setOutputVariable(undefined);
+      handleNoItemsSelected();
     }
   };
   const handleOnClearClick = () => {
     setOutputVariable(undefined);
     setSelectionArray([]);
+    setErrorText("");
     selection.setAllSelected(false);
     if (window.location.href.includes("portal")) {
       sessionStorage.removeItem(`${entityName}selectedItems`)
       window.dispatchEvent(new Event("storage"));
     }
   };
+  const handleNoItemsSelected = () => {
+    setErrorText("No Items Selected")
+    setTimeout(()=> {
+      setErrorText("")
+    },5000)
+  }
   // const handleOnNewClick = () => {
   //   setPanelOpen(true);
   // };
@@ -463,8 +473,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             marginBottom: "9px",
             paddingBottom: "9px",
           }}>
-
-            <div></div>
+            <div style={{color:"red", fontWeight:700, marginLeft:"16px"}}>
+              {errorText}
+            </div>
             <div
               style={{
                 display: "flex",
