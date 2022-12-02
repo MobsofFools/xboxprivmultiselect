@@ -105,6 +105,7 @@ const MultiSelect = (props: IMultiSelect) => {
   },[columnData])
   useEffect(()=> {
     handleOnLoad();
+    console.log("Updated 2022-12-01 11:21PM MST")
   },[])
 
   // useEffect(()=>{

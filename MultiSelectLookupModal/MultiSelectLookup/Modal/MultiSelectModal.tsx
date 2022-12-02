@@ -76,7 +76,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   const headerRef = createRef<HTMLDivElement>();
   const searchDivRef = createRef<HTMLDivElement>();
   const blurbDivRef = createRef<HTMLDivElement>();
-  
+
   //#endregion
 
   //#region Context Variables
@@ -183,7 +183,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             maxWidth: minWidth,
             isMultiline: true,
             isResizable: true,
-            isSorted:false,
+            isSorted: false,
             onColumnClick: _onColumnClick,
           };
           columns.push(tempColumn);
@@ -229,16 +229,16 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     );
   };
 
-  const handleSetSortColumnData = async (fieldName: string, isSortedDescending?: boolean, searchVar?:string) => {
-    if (window.location.href.includes("powerappsportal")) {
-      if (portalDataSet) {
-        const data = await getPortalFilterResults(context, fieldName, isSortedDescending, searchVar);
-        setPortalDataSet(data.value);
-        const slicedArray = data.value.slice(0, 50);
-        setColumnData(slicedArray)
-        setPageNumber(1);
-        document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
-      }
+  const handleSetSortColumnData = async (fieldName: string, isSortedDescending?: boolean, searchVar?: string) => {
+    if (window.location.href.includes("portal")) {
+      const data = await getPortalFilterResults(context, fieldName, isSortedDescending, searchVar);
+      setPortalDataSet(data.value);
+      const slicedArray = data.value.slice(0, 50);
+      console.log("Data to Set", slicedArray)
+      setColumnData(slicedArray)
+      setPageNumber(1);
+      document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
+
     }
     else {
       const data = await getEntityFilterResults(context, fieldName, isSortedDescending, searchVar);
@@ -365,9 +365,9 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
   };
   const handleNoItemsSelected = () => {
     setErrorText("No Items Selected")
-    setTimeout(()=> {
+    setTimeout(() => {
       setErrorText("")
-    },5000)
+    }, 5000)
   }
   // const handleOnNewClick = () => {
   //   setPanelOpen(true);
@@ -473,7 +473,7 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
             marginBottom: "9px",
             paddingBottom: "9px",
           }}>
-            <div style={{color:"red", fontWeight:700, marginLeft:"16px"}}>
+            <div style={{ color: "red", fontWeight: 700, marginLeft: "16px" }}>
               {errorText}
             </div>
             <div
