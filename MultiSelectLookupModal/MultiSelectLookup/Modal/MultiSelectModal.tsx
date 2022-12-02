@@ -399,11 +399,21 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
     }
   }
+  const getIndexMatch= (item:ComponentFramework.WebApi.Entity, selected:ComponentFramework.WebApi.Entity) => 
+  {
+    return item[`${entityName}id`] === selected[`${entityName}id`]
+  }
   const removeTag = (etn: ComponentFramework.WebApi.Entity) => {
     if (selectionArray) {
-
       const tempArray = selectionArray.filter(a => a[`${entityName}id`] !== etn[`${entityName}id`])
       setSelectionArray(tempArray);
+      selection.setAllSelected(false);
+      tempArray.forEach((item)=> {
+        const index = columnData.findIndex((selItem) => getIndexMatch(item, selItem));
+        if(index >= 0){
+            selection.setIndexSelected(index,true,false);
+        }
+      })
     }
   }
   //#region useEffect
