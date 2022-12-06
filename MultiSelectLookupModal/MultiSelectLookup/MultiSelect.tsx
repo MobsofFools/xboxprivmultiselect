@@ -20,7 +20,7 @@ const MultiSelect = (props: IMultiSelect) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [pageSelected, setPageSelected] = useState<ComponentFramework.WebApi.Entity[]>();
   const entityName = context?.parameters.entityName.raw!;
-  
+
   useEffect(()=> {
     onChange(outputVariable);
   },[outputVariable])
@@ -45,12 +45,16 @@ const MultiSelect = (props: IMultiSelect) => {
       return current
     });
     let difference = pageSelect?.filter(x=> !current.includes(x))
-    // console.log("current",curr.length);
-    // console.log("difference",difference);
-    // console.log("pre", pageSelect?.length)
-    if(difference && difference.length === 1 && (pageSelect && pageSelect.length > current.length) ){
+    const num = selection.getItems().length;
+    if(difference && (difference.length === 1 ) && (pageSelect && pageSelect.length > current.length) ){
       const data = maintainSelectedEntityData(entityName, curr,prev);
       curr = data.filter(a => a[`${entityName}id`] !== difference![0][`${entityName}id`])
+      return curr;
+    }
+    // could probably just use this for both
+    else if(difference && (difference.length === 50 || difference.length === num)){
+      const data = maintainSelectedEntityData(entityName, curr,prev);
+      curr = data.filter(a => !difference?.includes(a))
       return curr;
     }
     else{
@@ -68,8 +72,6 @@ const MultiSelect = (props: IMultiSelect) => {
               selection.getSelection()[i] as ComponentFramework.WebApi.Entity[]
             );
           }
-          
-          
           setSelectionArray((prev)=> updateSelectionArray(entityName, array,prev));
         },
         selectionMode: SelectionMode.multiple,
@@ -105,7 +107,7 @@ const MultiSelect = (props: IMultiSelect) => {
   },[columnData])
   useEffect(()=> {
     handleOnLoad();
-    console.log("Updated 2022-12-01 11:21PM MST")
+    console.log("Updated 2022-12-02 12:26PM MST")
   },[])
 
   // useEffect(()=>{

@@ -407,13 +407,10 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
     if (selectionArray) {
       const tempArray = selectionArray.filter(a => a[`${entityName}id`] !== etn[`${entityName}id`])
       setSelectionArray(tempArray);
-      selection.setAllSelected(false);
-      tempArray.forEach((item)=> {
-        const index = columnData.findIndex((selItem) => getIndexMatch(item, selItem));
-        if(index >= 0){
-            selection.setIndexSelected(index,true,false);
-        }
-      })
+      const index = columnData.findIndex((selItem) => getIndexMatch(etn, selItem));
+      if(index >= 0){
+            selection.setIndexSelected(index,false,false);
+      }
     }
   }
   //#region useEffect
