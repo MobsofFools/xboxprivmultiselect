@@ -236,6 +236,7 @@ export const getEntityInitialResults = async (context: ComponentFramework.Contex
   );
   return data;
 };
+//Unused
 export const getEntityAfterCreate = async (context: ComponentFramework.Context<IInputs>, newLookup: ComponentFramework.LookupValue) => {
   const entityName = context.parameters.entityName.raw!
   const selectedColumns = context.parameters.selectedColumns.raw!

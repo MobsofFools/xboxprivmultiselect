@@ -234,7 +234,6 @@ const MultiSelectModal = (props: IMultiSelectModal) => {
       const data = await getPortalFilterResults(context, fieldName, isSortedDescending, searchVar);
       setPortalDataSet(data.value);
       const slicedArray = data.value.slice(0, 50);
-      console.log("Data to Set", slicedArray)
       setColumnData(slicedArray)
       setPageNumber(1);
       document.querySelector(".ms-ScrollablePane--contentContainer")?.scrollTo(0, 0);
